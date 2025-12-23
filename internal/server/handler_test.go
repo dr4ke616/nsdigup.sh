@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -219,7 +220,7 @@ func TestHandler_JSONResponse(t *testing.T) {
 	handler := NewHandler(1 * time.Hour)
 	handler.scanner = mock
 	
-	req := httptest.NewRequest("GET", "/example.com", nil)
+	req := httptest.NewRequest("GET", "/example.com?format=json", nil)
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 	
@@ -228,7 +229,7 @@ func TestHandler_JSONResponse(t *testing.T) {
 	}
 	
 	contentType := w.Header().Get("Content-Type")
-	if contentType != "application/json" {
+	if !strings.Contains(contentType, "application/json") {
 		t.Errorf("Expected Content-Type application/json, got %s", contentType)
 	}
 	
