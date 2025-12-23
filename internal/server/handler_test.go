@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"checks/internal/config"
 	"checks/pkg/models"
 )
 
@@ -40,8 +41,14 @@ func TestHandler_CacheHit(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	// Create handler with very short TTL for testing
-	handler := NewHandler(1 * time.Hour)
+	// Create handler with cache enabled
+	cfg := &config.Config{
+		Cache: config.CacheConfig{
+			Enabled: true,
+			TTL:     1 * time.Hour,
+		},
+	}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// First request - should hit scanner
@@ -88,7 +95,8 @@ func TestHandler_CacheMiss(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 	
 	// Create handler with very short TTL
-	handler := NewHandler(1 * time.Millisecond)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Millisecond}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// First request
@@ -119,7 +127,8 @@ func TestHandler_MultipleDomains(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	domains := []string{"google.com", "github.com", "example.com"}
@@ -162,7 +171,8 @@ func TestHandler_ScannerError(t *testing.T) {
 		err: context.DeadlineExceeded,
 	}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	req := httptest.NewRequest("GET", "/example.com", nil)
@@ -184,7 +194,8 @@ func TestHandler_ScannerError(t *testing.T) {
 }
 
 func TestHandler_EmptyDomain(t *testing.T) {
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	
 	tests := []string{"/", "http://localhost/"}
 	
@@ -217,7 +228,8 @@ func TestHandler_JSONResponse(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	req := httptest.NewRequest("GET", "/example.com?format=json", nil)

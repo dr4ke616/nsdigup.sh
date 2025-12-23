@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"checks/internal/cache"
+	"checks/internal/config"
 	"checks/internal/renderer"
 	"checks/internal/scanner"
 	"checks/pkg/models"
@@ -19,10 +19,18 @@ type Handler struct {
 	ansiRenderer renderer.Renderer
 }
 
-func NewHandler(cacheTTL time.Duration) *Handler {
+func NewHandler(cfg *config.Config) *Handler {
+	var store cache.Store
+	
+	if cfg.Cache.Enabled {
+		store = cache.NewMemoryStore(cfg.Cache.TTL)
+	} else {
+		store = cache.NewNoOpStore()
+	}
+
 	return &Handler{
 		scanner:      scanner.NewOrchestrator(),
-		cache:        cache.NewMemoryStore(cacheTTL),
+		cache:        store,
 		jsonRenderer: renderer.NewJSONRenderer(),
 		ansiRenderer: renderer.NewANSIRenderer(),
 	}

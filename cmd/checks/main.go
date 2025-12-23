@@ -4,19 +4,27 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
+	"checks/internal/config"
 	"checks/internal/server"
 )
 
 func main() {
-	handler := server.NewHandler(5 * time.Minute)
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
 
-	port := ":8080"
-	fmt.Printf("Starting server on %s\n", port)
-	fmt.Println("Usage: curl http://localhost:8080/example.com")
+	// Create handler with configuration
+	handler := server.NewHandler(cfg)
 
-	if err := http.ListenAndServe(port, handler); err != nil {
+	// Start server
+	fmt.Printf("Starting %s on %s\n", cfg.App.Name, cfg.App.Port)
+	fmt.Printf("Cache: enabled=%v, ttl=%v\n", cfg.Cache.Enabled, cfg.Cache.TTL)
+	fmt.Printf("Usage: curl http://localhost%s/example.com\n", cfg.App.Port)
+
+	if err := http.ListenAndServe(cfg.App.Port, handler); err != nil {
 		log.Fatal(err)
 	}
 }

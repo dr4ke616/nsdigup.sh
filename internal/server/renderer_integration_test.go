@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"checks/internal/config"
 	"checks/pkg/models"
 )
 
@@ -24,7 +25,8 @@ func TestHandler_JSONFormat(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// Test explicit JSON format via query parameter
@@ -77,7 +79,8 @@ func TestHandler_ANSIFormat(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// Test explicit ANSI format via query parameter
@@ -139,7 +142,8 @@ func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	tests := []struct {
@@ -218,7 +222,8 @@ func TestHandler_FormatQueryParameterOverridesAcceptHeader(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// Request ANSI via query parameter but send JSON accept header
@@ -251,7 +256,8 @@ func TestHandler_InvalidFormat(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// Request invalid format - should default to JSON
@@ -282,7 +288,8 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 	
-	handler := NewHandler(1 * time.Hour)
+	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	handler := NewHandler(cfg)
 	handler.scanner = mock
 	
 	// First request as JSON
