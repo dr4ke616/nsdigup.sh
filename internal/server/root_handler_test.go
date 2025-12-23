@@ -14,6 +14,7 @@ func TestHandler_Home_ANSI(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
 			Name: "Test App",
+			Host: "0.0.0.0",
 			Port: ":8080",
 		},
 		Cache: config.CacheConfig{
@@ -43,9 +44,9 @@ func TestHandler_Home_ANSI(t *testing.T) {
 		t.Error("Expected app name in response")
 	}
 
-	// Check for usage examples
-	if !strings.Contains(body, "curl http://localhost:8080/") {
-		t.Error("Expected usage examples with correct port")
+	// Check for usage examples  
+	if !strings.Contains(body, "curl http://0.0.0.0:8080/") {
+		t.Error("Expected usage examples with correct host and port")
 	}
 
 	// Check for features
@@ -63,6 +64,7 @@ func TestHandler_Home_JSON(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
 			Name: "JSON Test",
+			Host: "127.0.0.1",
 			Port: ":9090",
 		},
 		Cache: config.CacheConfig{
@@ -93,8 +95,8 @@ func TestHandler_Home_JSON(t *testing.T) {
 	}
 
 	// Check for usage with escaped angle brackets
-	if !strings.Contains(body, `"usage": "http://localhost:9090/\u003cdomain\u003e"`) {
-		t.Errorf("Expected usage with correct port in JSON, got: %s", body)
+	if !strings.Contains(body, `"usage": "http://127.0.0.1:9090/\u003cdomain\u003e"`) {
+		t.Errorf("Expected usage with correct host and port in JSON, got: %s", body)
 	}
 
 	if !strings.Contains(body, `"enabled": false`) {
@@ -109,7 +111,7 @@ func TestHandler_Home_JSON(t *testing.T) {
 
 func TestHandler_Home_AcceptHeader(t *testing.T) {
 	cfg := &config.Config{
-		App:   config.AppConfig{Name: "Accept Test", Port: ":8080"},
+		App:   config.AppConfig{Name: "Accept Test", Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{Enabled: true, TTL: 5 * time.Minute},
 	}
 	handler := NewHandler(cfg)
@@ -177,6 +179,7 @@ func TestHandler_Home_CacheDisabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
 			Name: "No Cache Test",
+			Host: "0.0.0.0",
 			Port: ":8080",
 		},
 		Cache: config.CacheConfig{
@@ -202,6 +205,7 @@ func TestHandler_Home_CacheEnabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
 			Name: "Cache Test",
+			Host: "0.0.0.0",
 			Port: ":8080",
 		},
 		Cache: config.CacheConfig{
@@ -227,6 +231,7 @@ func TestHandler_Home_CustomPort(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
 			Name: "Custom Port",
+			Host: "192.168.1.100",
 			Port: ":9999",
 		},
 		Cache: config.CacheConfig{Enabled: true, TTL: 5 * time.Minute},
@@ -239,8 +244,8 @@ func TestHandler_Home_CustomPort(t *testing.T) {
 
 	body := w.Body.String()
 
-	// Should use the configured port in examples
-	if !strings.Contains(body, "http://localhost:9999/") {
-		t.Error("Expected custom port in examples")
+	// Should use the configured host and port in examples
+	if !strings.Contains(body, "http://192.168.1.100:9999/") {
+		t.Error("Expected custom host and port in examples")
 	}
 }

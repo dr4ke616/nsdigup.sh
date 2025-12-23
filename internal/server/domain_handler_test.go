@@ -43,6 +43,7 @@ func TestHandler_CacheHit(t *testing.T) {
 
 	// Create handler with cache enabled
 	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
 			Enabled: true,
 			TTL:     1 * time.Hour,
@@ -95,7 +96,10 @@ func TestHandler_CacheMiss(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	// Create handler with very short TTL
-	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Millisecond}}
+	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Millisecond},
+	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 
@@ -127,7 +131,10 @@ func TestHandler_MultipleDomains(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 
-	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 
@@ -171,7 +178,10 @@ func TestHandler_ScannerError(t *testing.T) {
 		err: context.DeadlineExceeded,
 	}
 
-	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 
@@ -194,7 +204,10 @@ func TestHandler_ScannerError(t *testing.T) {
 }
 
 func TestHandler_EmptyDomain(t *testing.T) {
-	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+	}
 	handler := NewHandler(cfg)
 
 	// "/" is now the home route, should return 200
@@ -234,7 +247,10 @@ func TestHandler_JSONResponse(t *testing.T) {
 	}
 	mock := &mockScanner{report: mockReport}
 
-	cfg := &config.Config{Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour}}
+	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 

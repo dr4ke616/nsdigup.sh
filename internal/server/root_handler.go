@@ -28,17 +28,17 @@ func (h *Handler) writeHomeANSI(w http.ResponseWriter) {
 	output += fmt.Sprintf("\033[1m\033[32m%s\033[0m - Domain Health Checker\n\n", h.config.App.Name)
 
 	output += "\033[1mUsage:\033[0m\n"
-	output += "  curl " + h.getBaseURL() + "/<domain>\n\n"
+	output += "  curl " + h.config.App.BaseURL() + "/<domain>\n\n"
 
 	output += "\033[1mExamples:\033[0m\n"
-	output += "  curl " + h.getBaseURL() + "/google.com\n"
-	output += "  curl " + h.getBaseURL() + "/github.com\n"
-	output += "  curl " + h.getBaseURL() + "/example.com\n\n"
+	output += "  curl " + h.config.App.BaseURL() + "/google.com\n"
+	output += "  curl " + h.config.App.BaseURL() + "/github.com\n"
+	output += "  curl " + h.config.App.BaseURL() + "/example.com\n\n"
 
 	output += "\033[1mOutput Formats:\033[0m\n"
-	output += "  Text (default): curl " + h.getBaseURL() + "/google.com\n"
-	output += "  JSON:           curl " + h.getBaseURL() + "/google.com?format=json\n"
-	output += "  JSON (header):  curl -H \"Accept: application/json\" " + h.getBaseURL() + "/google.com\n\n"
+	output += "  Text (default): curl " + h.config.App.BaseURL() + "/google.com\n"
+	output += "  JSON:           curl " + h.config.App.BaseURL() + "/google.com?format=json\n"
+	output += "  JSON (header):  curl -H \"Accept: application/json\" " + h.config.App.BaseURL() + "/google.com\n\n"
 
 	output += "\033[1mFeatures:\033[0m\n"
 	output += "  • DNS Resolution & Nameserver Analysis\n"
@@ -62,15 +62,15 @@ func (h *Handler) writeHomeJSON(w http.ResponseWriter) {
 	response := map[string]interface{}{
 		"name":        h.config.App.Name,
 		"description": "Domain Health Checker",
-		"usage":       h.getBaseURL() + "/<domain>",
+		"usage":       h.config.App.BaseURL() + "/<domain>",
 		"examples": []string{
-			h.getBaseURL() + "/google.com",
-			h.getBaseURL() + "/github.com",
-			h.getBaseURL() + "/example.com",
+			h.config.App.BaseURL() + "/google.com",
+			h.config.App.BaseURL() + "/github.com",
+			h.config.App.BaseURL() + "/example.com",
 		},
 		"formats": map[string]string{
-			"text": h.getBaseURL() + "/google.com",
-			"json": h.getBaseURL() + "/google.com?format=json",
+			"text": h.config.App.BaseURL() + "/google.com",
+			"json": h.config.App.BaseURL() + "/google.com?format=json",
 		},
 		"features": []string{
 			"DNS Resolution & Nameserver Analysis",

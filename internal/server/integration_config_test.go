@@ -19,6 +19,7 @@ func TestHandler_CacheEnabled(t *testing.T) {
 
 	// Create handler with cache enabled
 	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
 			Enabled: true,
 			TTL:     1 * time.Hour,
@@ -64,6 +65,7 @@ func TestHandler_CacheDisabled(t *testing.T) {
 
 	// Create handler with cache disabled
 	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
 			Enabled: false,
 			TTL:     0, // TTL doesn't matter when disabled
@@ -109,6 +111,7 @@ func TestHandler_CacheVeryShortTTL(t *testing.T) {
 
 	// Create handler with very short TTL
 	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
 			Enabled: true,
 			TTL:     1 * time.Millisecond,
@@ -161,6 +164,7 @@ func TestHandler_ConfigValidation_CacheStoreType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := &config.Config{
+				App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 				Cache: config.CacheConfig{
 					Enabled: tt.cacheEnabled,
 					TTL:     5 * time.Minute,
@@ -188,6 +192,7 @@ func TestHandler_ConfigValidation_CacheStoreType(t *testing.T) {
 func TestHandler_CacheConfigZeroTTL(t *testing.T) {
 	// Cache disabled with zero TTL should work
 	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
 			Enabled: false,
 			TTL:     0,
@@ -211,6 +216,7 @@ func TestHandler_MultipleDomainsCacheDisabled(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
+		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
 			Enabled: false,
 		},

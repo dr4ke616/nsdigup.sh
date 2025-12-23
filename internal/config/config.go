@@ -18,7 +18,18 @@ type Config struct {
 // AppConfig holds application-level configuration
 type AppConfig struct {
 	Name string `json:"name"`
+	Host string `json:"host"`
 	Port string `json:"port"`
+}
+
+// Address returns the full host:port address for the server
+func (a *AppConfig) Address() string {
+	return a.Host + a.Port
+}
+
+// BaseURL returns the base URL for the server
+func (a *AppConfig) BaseURL() string {
+	return "http://" + a.Host + a.Port
 }
 
 // CacheConfig holds cache-related configuration
@@ -33,6 +44,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		App: AppConfig{
 			Name: "checks.sh",
+			Host: "0.0.0.0",
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
@@ -63,6 +75,10 @@ func (c *Config) loadFromEnv() error {
 	// App configuration
 	if name := os.Getenv("CHECKS_APP_NAME"); name != "" {
 		c.App.Name = name
+	}
+
+	if host := os.Getenv("CHECKS_HOST"); host != "" {
+		c.App.Host = host
 	}
 
 	if port := os.Getenv("CHECKS_PORT"); port != "" {
@@ -99,6 +115,7 @@ func (c *Config) loadFromFlags() error {
 	if !flag.Parsed() && !isTest() {
 		var (
 			appName      = flag.String("name", c.App.Name, "Application name")
+			host         = flag.String("host", c.App.Host, "Server host address")
 			port         = flag.String("port", c.App.Port, "Server port (with or without colon prefix)")
 			cacheEnabled = flag.Bool("cache", c.Cache.Enabled, "Enable caching")
 			cacheTTL     = flag.Duration("cache-ttl", c.Cache.TTL, "Cache TTL duration (e.g., 5m, 1h)")
@@ -108,6 +125,7 @@ func (c *Config) loadFromFlags() error {
 
 		// Apply flag values
 		c.App.Name = *appName
+		c.App.Host = *host
 
 		// Ensure port starts with `:` if not provided
 		if (*port)[0] != ':' {

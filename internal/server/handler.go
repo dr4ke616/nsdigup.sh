@@ -65,9 +65,6 @@ func (h *Handler) getOutputFormat(r *http.Request) string {
 	return "ansi"
 }
 
-func (h *Handler) getBaseURL() string {
-	return "http://localhost" + h.config.App.Port
-}
 
 func isDomainPath(path string) bool {
 	domain := strings.TrimPrefix(path, "/")
