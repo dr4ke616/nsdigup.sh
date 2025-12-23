@@ -45,8 +45,8 @@ func TestHandler_CacheHit(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     1 * time.Hour,
+			Mode: config.CacheModeMem,
+			TTL:  1 * time.Hour,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -97,8 +97,8 @@ func TestHandler_CacheMiss(t *testing.T) {
 
 	// Create handler with very short TTL
 	cfg := &config.Config{
-		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
-		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Millisecond},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Millisecond},
 	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
@@ -132,8 +132,8 @@ func TestHandler_MultipleDomains(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
-		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
@@ -179,8 +179,8 @@ func TestHandler_ScannerError(t *testing.T) {
 	}
 
 	cfg := &config.Config{
-		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
-		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock
@@ -205,8 +205,8 @@ func TestHandler_ScannerError(t *testing.T) {
 
 func TestHandler_EmptyDomain(t *testing.T) {
 	cfg := &config.Config{
-		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
-		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
 
@@ -248,8 +248,8 @@ func TestHandler_JSONResponse(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
-		Cache: config.CacheConfig{Enabled: true, TTL: 1 * time.Hour},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
 	handler.scanner = mock

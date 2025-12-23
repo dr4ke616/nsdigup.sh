@@ -18,8 +18,8 @@ func TestHandler_Home_ANSI(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     5 * time.Minute,
+			Mode: config.CacheModeMem,
+			TTL:  5 * time.Minute,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -44,7 +44,7 @@ func TestHandler_Home_ANSI(t *testing.T) {
 		t.Error("Expected app name in response")
 	}
 
-	// Check for usage examples  
+	// Check for usage examples
 	if !strings.Contains(body, "curl http://0.0.0.0:8080/") {
 		t.Error("Expected usage examples with correct host and port")
 	}
@@ -68,8 +68,8 @@ func TestHandler_Home_JSON(t *testing.T) {
 			Port: ":9090",
 		},
 		Cache: config.CacheConfig{
-			Enabled: false,
-			TTL:     0,
+			Mode: config.CacheModeNone,
+			TTL:  0,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -99,7 +99,7 @@ func TestHandler_Home_JSON(t *testing.T) {
 		t.Errorf("Expected usage with correct host and port in JSON, got: %s", body)
 	}
 
-	if !strings.Contains(body, `"enabled": false`) {
+	if !strings.Contains(body, `"mode": "none"`) {
 		t.Error("Expected cache disabled in JSON")
 	}
 
@@ -112,7 +112,7 @@ func TestHandler_Home_JSON(t *testing.T) {
 func TestHandler_Home_AcceptHeader(t *testing.T) {
 	cfg := &config.Config{
 		App:   config.AppConfig{Name: "Accept Test", Host: "0.0.0.0", Port: ":8080"},
-		Cache: config.CacheConfig{Enabled: true, TTL: 5 * time.Minute},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 5 * time.Minute},
 	}
 	handler := NewHandler(cfg)
 
@@ -183,8 +183,8 @@ func TestHandler_Home_CacheDisabled(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: config.CacheConfig{
-			Enabled: false,
-			TTL:     0,
+			Mode: config.CacheModeNone,
+			TTL:  0,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -209,8 +209,8 @@ func TestHandler_Home_CacheEnabled(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     10 * time.Minute,
+			Mode: config.CacheModeMem,
+			TTL:  10 * time.Minute,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -234,7 +234,7 @@ func TestHandler_Home_CustomPort(t *testing.T) {
 			Host: "192.168.1.100",
 			Port: ":9999",
 		},
-		Cache: config.CacheConfig{Enabled: true, TTL: 5 * time.Minute},
+		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 5 * time.Minute},
 	}
 	handler := NewHandler(cfg)
 

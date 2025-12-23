@@ -22,9 +22,13 @@ type Handler struct {
 func NewHandler(cfg *config.Config) *Handler {
 	var store cache.Store
 
-	if cfg.Cache.Enabled {
+	switch cfg.Cache.Mode {
+	case config.CacheModeMem:
 		store = cache.NewMemoryStore(cfg.Cache.TTL)
-	} else {
+	case config.CacheModeNone:
+		store = cache.NewNoOpStore()
+	default:
+		// Default to no-op store for unknown cache modes
 		store = cache.NewNoOpStore()
 	}
 
@@ -64,7 +68,6 @@ func (h *Handler) getOutputFormat(r *http.Request) string {
 
 	return "ansi"
 }
-
 
 func isDomainPath(path string) bool {
 	domain := strings.TrimPrefix(path, "/")

@@ -28,8 +28,8 @@ func TestConfig_Load_Defaults(t *testing.T) {
 		t.Errorf("Expected port ':8080', got '%s'", cfg.App.Port)
 	}
 
-	if !cfg.Cache.Enabled {
-		t.Error("Expected cache enabled by default")
+	if cfg.Cache.Mode != CacheModeMem {
+		t.Error("Expected cache mem mode by default")
 	}
 
 	if cfg.Cache.TTL != 5*time.Minute {
@@ -45,7 +45,7 @@ func TestConfig_LoadFromEnv(t *testing.T) {
 	// Set environment variables
 	os.Setenv("CHECKS_APP_NAME", "test-app")
 	os.Setenv("CHECKS_PORT", "9090")
-	os.Setenv("CHECKS_CACHE_ENABLED", "false")
+	os.Setenv("CHECKS_CACHE_MODE", "none")
 	os.Setenv("CHECKS_CACHE_TTL", "10m")
 	defer clearEnv()
 
@@ -62,7 +62,7 @@ func TestConfig_LoadFromEnv(t *testing.T) {
 		t.Errorf("Expected port ':9090', got '%s'", cfg.App.Port)
 	}
 
-	if cfg.Cache.Enabled {
+	if cfg.Cache.Mode != CacheModeNone {
 		t.Error("Expected cache disabled")
 	}
 
@@ -88,16 +88,16 @@ func TestConfig_LoadFromEnv_PortWithColon(t *testing.T) {
 	}
 }
 
-func TestConfig_LoadFromEnv_InvalidBool(t *testing.T) {
+func TestConfig_LoadFromEnv_InvalidMode(t *testing.T) {
 	clearEnv()
 	resetFlags()
 
-	os.Setenv("CHECKS_CACHE_ENABLED", "maybe")
+	os.Setenv("CHECKS_CACHE_MODE", "maybe")
 	defer clearEnv()
 
 	_, err := Load()
 	if err == nil {
-		t.Error("Expected error for invalid boolean value")
+		t.Error("Expected error for invalid mode value")
 	}
 }
 
@@ -121,8 +121,8 @@ func TestConfig_Validate_EmptyAppName(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
-			Enabled: true,
-			TTL:     5 * time.Minute,
+			Mode: CacheModeMem,
+			TTL:  5 * time.Minute,
 		},
 	}
 
@@ -139,8 +139,8 @@ func TestConfig_Validate_EmptyPort(t *testing.T) {
 			Port: "",
 		},
 		Cache: CacheConfig{
-			Enabled: true,
-			TTL:     5 * time.Minute,
+			Mode: CacheModeMem,
+			TTL:  5 * time.Minute,
 		},
 	}
 
@@ -157,8 +157,8 @@ func TestConfig_Validate_NegativeTTL(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
-			Enabled: true,
-			TTL:     -1 * time.Minute,
+			Mode: CacheModeMem,
+			TTL:  -1 * time.Minute,
 		},
 	}
 
@@ -175,8 +175,8 @@ func TestConfig_Validate_ZeroTTLWithCacheEnabled(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
-			Enabled: true,
-			TTL:     0,
+			Mode: CacheModeMem,
+			TTL:  0,
 		},
 	}
 
@@ -193,8 +193,8 @@ func TestConfig_Validate_ZeroTTLWithCacheDisabled(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
-			Enabled: false,
-			TTL:     0,
+			Mode: CacheModeNone,
+			TTL:  0,
 		},
 	}
 
@@ -211,13 +211,13 @@ func TestConfig_String(t *testing.T) {
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
-			Enabled: true,
-			TTL:     5 * time.Minute,
+			Mode: CacheModeMem,
+			TTL:  5 * time.Minute,
 		},
 	}
 
 	str := cfg.String()
-	expected := "Config{App: {Name: test-app, Port: :8080}, Cache: {Enabled: true, TTL: 5m0s}}"
+	expected := "Config{App: {Name: test-app, Port: :8080}, Cache: {Mode: mem, TTL: 5m0s}}"
 	if str != expected {
 		t.Errorf("Expected string '%s', got '%s'", expected, str)
 	}

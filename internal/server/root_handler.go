@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"checks/internal/banner"
+	"checks/internal/config"
 )
 
 // ServeHome handles the root "/" route
@@ -46,9 +47,12 @@ func (h *Handler) writeHomeANSI(w http.ResponseWriter) {
 	output += "  • Email Security (SPF/DMARC) Validation\n"
 	output += "  • HTTP Security Headers Assessment\n"
 	output += "  • Colorized Terminal Output\n"
-	if h.config.Cache.Enabled {
+	switch h.config.Cache.Mode {
+	case config.CacheModeMem:
 		output += fmt.Sprintf("  • In-Memory Caching (%v TTL)\n", h.config.Cache.TTL)
-	} else {
+	case config.CacheModeNone:
+		output += "  • Real-time Scanning (no caching)\n"
+	default:
 		output += "  • Real-time Scanning (no caching)\n"
 	}
 	output += "\n"
@@ -80,8 +84,8 @@ func (h *Handler) writeHomeJSON(w http.ResponseWriter) {
 			"Colorized Terminal Output",
 		},
 		"cache": map[string]interface{}{
-			"enabled": h.config.Cache.Enabled,
-			"ttl":     h.config.Cache.TTL.String(),
+			"mode": string(h.config.Cache.Mode),
+			"ttl":  h.config.Cache.TTL.String(),
 		},
 	}
 

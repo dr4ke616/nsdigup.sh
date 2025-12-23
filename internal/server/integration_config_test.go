@@ -21,8 +21,8 @@ func TestHandler_CacheEnabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     1 * time.Hour,
+			Mode: config.CacheModeMem,
+			TTL:  1 * time.Hour,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -67,8 +67,8 @@ func TestHandler_CacheDisabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
-			Enabled: false,
-			TTL:     0, // TTL doesn't matter when disabled
+			Mode: config.CacheModeNone,
+			TTL:  0, // TTL doesn't matter when disabled
 		},
 	}
 	handler := NewHandler(cfg)
@@ -113,8 +113,8 @@ func TestHandler_CacheVeryShortTTL(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     1 * time.Millisecond,
+			Mode: config.CacheModeMem,
+			TTL:  1 * time.Millisecond,
 		},
 	}
 	handler := NewHandler(cfg)
@@ -145,19 +145,19 @@ func TestHandler_CacheVeryShortTTL(t *testing.T) {
 
 func TestHandler_ConfigValidation_CacheStoreType(t *testing.T) {
 	tests := []struct {
-		name         string
-		cacheEnabled bool
-		expectNoOp   bool
+		name       string
+		cacheMode  config.CacheMode
+		expectNoOp bool
 	}{
 		{
-			name:         "Cache enabled uses MemoryStore",
-			cacheEnabled: true,
-			expectNoOp:   false,
+			name:       "Cache enabled uses MemoryStore",
+			cacheMode:  config.CacheModeMem,
+			expectNoOp: false,
 		},
 		{
-			name:         "Cache disabled uses NoOpStore",
-			cacheEnabled: false,
-			expectNoOp:   true,
+			name:       "Cache disabled uses NoOpStore",
+			cacheMode:  config.CacheModeNone,
+			expectNoOp: true,
 		},
 	}
 
@@ -166,8 +166,8 @@ func TestHandler_ConfigValidation_CacheStoreType(t *testing.T) {
 			cfg := &config.Config{
 				App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 				Cache: config.CacheConfig{
-					Enabled: tt.cacheEnabled,
-					TTL:     5 * time.Minute,
+					Mode: tt.cacheMode,
+					TTL:  5 * time.Minute,
 				},
 			}
 
@@ -194,8 +194,8 @@ func TestHandler_CacheConfigZeroTTL(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
-			Enabled: false,
-			TTL:     0,
+			Mode: config.CacheModeNone,
+			TTL:  0,
 		},
 	}
 
@@ -218,7 +218,7 @@ func TestHandler_MultipleDomainsCacheDisabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
 		Cache: config.CacheConfig{
-			Enabled: false,
+			Mode: config.CacheModeNone,
 		},
 	}
 	handler := NewHandler(cfg)

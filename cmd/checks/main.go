@@ -24,7 +24,7 @@ func main() {
 	fmt.Print(banner.Generate(cfg.App.Name))
 	fmt.Printf("\n\n\033[1m\033[32m%s\033[0m - Domain Health Checker\n\n", cfg.App.Name)
 	fmt.Printf("\033[1mServer:\033[0m    %s\n", cfg.App.BaseURL())
-	fmt.Printf("\033[1mCache:\033[0m     enabled=%v, ttl=%v\n", cfg.Cache.Enabled, cfg.Cache.TTL)
+	fmt.Printf("\033[1mCache:\033[0m     mode=%s, ttl=%v\n", cfg.Cache.Mode, cfg.Cache.TTL)
 	fmt.Printf("\033[1mUsage:\033[0m     curl %s/<domain>\n", cfg.App.BaseURL())
 	fmt.Printf("\033[1mHome:\033[0m      curl %s/\n\n", cfg.App.BaseURL())
 

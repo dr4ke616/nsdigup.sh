@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -32,10 +31,18 @@ func (a *AppConfig) BaseURL() string {
 	return "http://" + a.Host + a.Port
 }
 
+// CacheMode represents the cache implementation mode
+type CacheMode string
+
+const (
+	CacheModeNone CacheMode = "none"
+	CacheModeMem  CacheMode = "mem"
+)
+
 // CacheConfig holds cache-related configuration
 type CacheConfig struct {
-	Enabled bool          `json:"enabled"`
-	TTL     time.Duration `json:"ttl"`
+	Mode CacheMode     `json:"mode"`
+	TTL  time.Duration `json:"ttl"`
 }
 
 // Load loads configuration from environment variables and command line flags
@@ -48,8 +55,8 @@ func Load() (*Config, error) {
 			Port: ":8080",
 		},
 		Cache: CacheConfig{
-			Enabled: true,
-			TTL:     5 * time.Minute,
+			Mode: CacheModeMem,
+			TTL:  5 * time.Minute,
 		},
 	}
 
@@ -90,12 +97,13 @@ func (c *Config) loadFromEnv() error {
 	}
 
 	// Cache configuration
-	if enabled := os.Getenv("CHECKS_CACHE_ENABLED"); enabled != "" {
-		val, err := strconv.ParseBool(enabled)
-		if err != nil {
-			return fmt.Errorf("invalid CHECKS_CACHE_ENABLED value '%s': %w", enabled, err)
+	if mode := os.Getenv("CHECKS_CACHE_MODE"); mode != "" {
+		switch CacheMode(mode) {
+		case CacheModeNone, CacheModeMem:
+			c.Cache.Mode = CacheMode(mode)
+		default:
+			return fmt.Errorf("invalid CHECKS_CACHE_MODE value '%s': must be 'none' or 'mem'", mode)
 		}
-		c.Cache.Enabled = val
 	}
 
 	if ttl := os.Getenv("CHECKS_CACHE_TTL"); ttl != "" {
@@ -114,11 +122,11 @@ func (c *Config) loadFromFlags() error {
 	// Only parse flags if they haven't been parsed yet and we're not in a test
 	if !flag.Parsed() && !isTest() {
 		var (
-			appName      = flag.String("name", c.App.Name, "Application name")
-			host         = flag.String("host", c.App.Host, "Server host address")
-			port         = flag.String("port", c.App.Port, "Server port (with or without colon prefix)")
-			cacheEnabled = flag.Bool("cache", c.Cache.Enabled, "Enable caching")
-			cacheTTL     = flag.Duration("cache-ttl", c.Cache.TTL, "Cache TTL duration (e.g., 5m, 1h)")
+			appName   = flag.String("name", c.App.Name, "Application name")
+			host      = flag.String("host", c.App.Host, "Server host address")
+			port      = flag.String("port", c.App.Port, "Server port (with or without colon prefix)")
+			cacheMode = flag.String("cache-mode", string(c.Cache.Mode), "Cache mode: 'none' or 'mem'")
+			cacheTTL  = flag.Duration("cache-ttl", c.Cache.TTL, "Cache TTL duration (e.g., 5m, 1h)")
 		)
 
 		flag.Parse()
@@ -134,7 +142,14 @@ func (c *Config) loadFromFlags() error {
 			c.App.Port = *port
 		}
 
-		c.Cache.Enabled = *cacheEnabled
+		// Validate and set cache mode
+		switch CacheMode(*cacheMode) {
+		case CacheModeNone, CacheModeMem:
+			c.Cache.Mode = CacheMode(*cacheMode)
+		default:
+			return fmt.Errorf("invalid cache-mode value '%s': must be 'none' or 'mem'", *cacheMode)
+		}
+
 		c.Cache.TTL = *cacheTTL
 	}
 
@@ -166,7 +181,7 @@ func (c *Config) validate() error {
 	}
 
 	// If cache is disabled, TTL doesn't matter
-	if c.Cache.Enabled && c.Cache.TTL == 0 {
+	if c.Cache.Mode == CacheModeMem && c.Cache.TTL == 0 {
 		return fmt.Errorf("cache TTL cannot be zero when cache is enabled")
 	}
 
@@ -175,6 +190,6 @@ func (c *Config) validate() error {
 
 // String returns a string representation of the config for debugging
 func (c *Config) String() string {
-	return fmt.Sprintf("Config{App: {Name: %s, Port: %s}, Cache: {Enabled: %v, TTL: %s}}",
-		c.App.Name, c.App.Port, c.Cache.Enabled, c.Cache.TTL)
+	return fmt.Sprintf("Config{App: {Name: %s, Port: %s}, Cache: {Mode: %v, TTL: %s}}",
+		c.App.Name, c.App.Port, c.Cache.Mode, c.Cache.TTL)
 }
