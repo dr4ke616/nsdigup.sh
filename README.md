@@ -1,6 +1,6 @@
 # checks.sh
 
-A curl-first domain health utility that aggregates Domain Identity, Certificate Health, and Configuration gaps into a high-density ANSI report.
+A `curl`-first domain health utility that aggregates Domain Identity, Certificate Health, and Configuration gaps into a high-density ANSI report.
 
 ## Features
 

@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"checks/internal/server"
 )
 
 func main() {
-	handler := server.NewHandler()
+	handler := server.NewHandler(5 * time.Minute)
 
 	port := ":8080"
 	fmt.Printf("Starting server on %s\n", port)

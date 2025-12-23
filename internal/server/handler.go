@@ -5,17 +5,21 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
+	"checks/internal/cache"
 	"checks/internal/scanner"
 )
 
 type Handler struct {
 	scanner scanner.Scanner
+	cache   cache.Store
 }
 
-func NewHandler() *Handler {
+func NewHandler(cacheTTL time.Duration) *Handler {
 	return &Handler{
 		scanner: scanner.NewOrchestrator(),
+		cache:   cache.NewMemoryStore(cacheTTL),
 	}
 }
 
@@ -26,6 +30,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Try cache first (read-through cache strategy)
+	if cachedReport, found := h.cache.Get(domain); found {
+		h.writeJSONResponse(w, cachedReport)
+		return
+	}
+
+	// Cache miss - scan the domain
 	ctx := context.Background()
 	report, err := h.scanner.Scan(ctx, domain)
 	if err != nil {
@@ -33,10 +44,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Store in cache for future requests
+	h.cache.Set(domain, report)
+
+	h.writeJSONResponse(w, report)
+}
+
+func (h *Handler) writeJSONResponse(w http.ResponseWriter, report interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(report); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
 	}
 }
 
