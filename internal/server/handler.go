@@ -1,15 +1,14 @@
 package server
 
 import (
-	"context"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"checks/internal/cache"
 	"checks/internal/config"
 	"checks/internal/renderer"
 	"checks/internal/scanner"
-	"checks/pkg/models"
 )
 
 type Handler struct {
@@ -17,11 +16,12 @@ type Handler struct {
 	cache        cache.Store
 	jsonRenderer renderer.Renderer
 	ansiRenderer renderer.Renderer
+	config       *config.Config
 }
 
 func NewHandler(cfg *config.Config) *Handler {
 	var store cache.Store
-	
+
 	if cfg.Cache.Enabled {
 		store = cache.NewMemoryStore(cfg.Cache.TTL)
 	} else {
@@ -33,37 +33,21 @@ func NewHandler(cfg *config.Config) *Handler {
 		cache:        store,
 		jsonRenderer: renderer.NewJSONRenderer(),
 		ansiRenderer: renderer.NewANSIRenderer(),
+		config:       cfg,
 	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	domain := extractDomain(r.URL.Path)
-	if domain == "" {
-		http.Error(w, "No domain specified", http.StatusBadRequest)
-		return
+	path := r.URL.Path
+
+	switch {
+	case isRootPath(path):
+		h.ServeHome(w, r)
+	case isDomainPath(path):
+		h.ServeDomain(w, r)
+	default:
+		http.NotFound(w, r)
 	}
-
-	// Determine output format from Accept header or query parameter
-	format := h.getOutputFormat(r)
-
-	// Try cache first (read-through cache strategy)
-	if cachedReport, found := h.cache.Get(domain); found {
-		h.writeResponse(w, cachedReport, format)
-		return
-	}
-
-	// Cache miss - scan the domain
-	ctx := context.Background()
-	report, err := h.scanner.Scan(ctx, domain)
-	if err != nil {
-		http.Error(w, "Scan failed: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Store in cache for future requests
-	h.cache.Set(domain, report)
-
-	h.writeResponse(w, report, format)
 }
 
 func (h *Handler) getOutputFormat(r *http.Request) string {
@@ -77,30 +61,23 @@ func (h *Handler) getOutputFormat(r *http.Request) string {
 	if strings.Contains(accept, "application/json") {
 		return "json"
 	}
-	
-	// Default to ANSI text output (curl-first design)
+
 	return "ansi"
 }
 
-func (h *Handler) writeResponse(w http.ResponseWriter, report interface{}, format string) {
-	switch format {
-	case "ansi", "text":
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		if err := h.ansiRenderer.Render(w, report.(*models.Report)); err != nil {
-			http.Error(w, "Failed to render ANSI response: "+err.Error(), http.StatusInternalServerError)
-		}
-	default: // json
-		w.Header().Set("Content-Type", "application/json")
-		if err := h.jsonRenderer.Render(w, report.(*models.Report)); err != nil {
-			http.Error(w, "Failed to render JSON response: "+err.Error(), http.StatusInternalServerError)
-		}
-	}
+func (h *Handler) getBaseURL() string {
+	return "http://localhost" + h.config.App.Port
 }
 
-func extractDomain(path string) string {
-	path = strings.TrimPrefix(path, "/")
-	if path == "" {
-		return ""
+func isDomainPath(path string) bool {
+	domain := strings.TrimPrefix(path, "/")
+	if domain == "" {
+		return false
 	}
-	return path
+	domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\:[0-9]+)?$`)
+	return domainRegex.MatchString(domain)
+}
+
+func isRootPath(path string) bool {
+	return path == "/"
 }

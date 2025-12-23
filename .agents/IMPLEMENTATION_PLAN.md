@@ -147,8 +147,6 @@ type Renderer interface {
 * Create `[ IDENTITY ]`, `[ CERTIFICATES ]`, `[ MISCONFIGURATIONS ]` blocks.
 * Logic to hide empty fields (e.g., if Registrar is empty in MVP, do not print the line).
 * Colorize "Risks" (e.g., DMARC `p=none` in Red).
-
-
 * [ ] **JSON Renderer:** Standard marshalling.
 
 ## 6. Coding Standards (For Agents)
