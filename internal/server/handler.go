@@ -1,18 +1,22 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
-	"time"
 
-	"checks/pkg/models"
+	"checks/internal/scanner"
 )
 
-type Handler struct{}
+type Handler struct {
+	scanner scanner.Scanner
+}
 
 func NewHandler() *Handler {
-	return &Handler{}
+	return &Handler{
+		scanner: scanner.NewOrchestrator(),
+	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -22,32 +26,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	report := &models.Report{
-		Target:    domain,
-		Timestamp: time.Now(),
-		Identity: models.Identity{
-			IP:          "",
-			Registrar:   "",
-			Owner:       "",
-			ExpiresDays: 0,
-			Nameservers: []string{},
-		},
-		Certificates: models.CertData{
-			Current: models.CertDetails{},
-			History: []models.CertDetails{},
-		},
-		Misconfigurations: models.Misconfigurations{
-			DNSGlue: []string{},
-			EmailSec: models.EmailSec{
-				DMARC:  "",
-				SPF:    "",
-				IsWeak: false,
-			},
-			Headers: []string{},
-		},
-		HTTP: models.HTTPDetails{
-			StatusCode: 0,
-		},
+	ctx := context.Background()
+	report, err := h.scanner.Scan(ctx, domain)
+	if err != nil {
+		http.Error(w, "Scan failed: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
