@@ -40,6 +40,12 @@ func (h *Handler) writeHomeANSI(w http.ResponseWriter) {
 	output += "  JSON:           curl " + h.getBaseURL() + "/google.com?format=json\n"
 	output += "  JSON (header):  curl -H \"Accept: application/json\" " + h.getBaseURL() + "/google.com\n\n"
 
+	output += "\033[1mFeatures:\033[0m\n"
+	output += "  • DNS Resolution & Nameserver Analysis\n"
+	output += "  • SSL/TLS Certificate Information & Expiry\n"
+	output += "  • Email Security (SPF/DMARC) Validation\n"
+	output += "  • HTTP Security Headers Assessment\n"
+	output += "  • Colorized Terminal Output\n"
 	if h.config.Cache.Enabled {
 		output += fmt.Sprintf("  • In-Memory Caching (%v TTL)\n", h.config.Cache.TTL)
 	} else {

@@ -106,7 +106,7 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.CertData) e
 	if certs.Current.CommonName != "" {
 		fmt.Fprintf(w, "  %sCurrent Certificate:%s\n", Bold, Reset)
 		fmt.Fprintf(w, "    %sCommon Name:%s %s", Bold, Reset, certs.Current.CommonName)
-		
+
 		if certs.Current.IsWildcard {
 			fmt.Fprintf(w, " %s(wildcard)%s", Yellow, Reset)
 		}
@@ -128,14 +128,14 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.CertData) e
 		if !certs.Current.NotAfter.IsZero() {
 			expiry := certs.Current.NotAfter.Format("2006-01-02")
 			daysUntilExpiry := int(time.Until(certs.Current.NotAfter).Hours() / 24)
-			
+
 			expiryColor := Green
 			if daysUntilExpiry < 0 {
 				expiryColor = Red
 			} else if daysUntilExpiry < 30 {
 				expiryColor = Yellow
 			}
-			
+
 			fmt.Fprintf(w, "    %sExpires:%s %s%s (%d days)%s\n", Bold, Reset, expiryColor, expiry, daysUntilExpiry, Reset)
 		}
 	} else {
@@ -154,7 +154,7 @@ func (a *ANSIRenderer) renderMisconfigurations(w io.Writer, misconfigs *models.M
 	// Email security
 	if misconfigs.EmailSec.SPF != "" || misconfigs.EmailSec.DMARC != "" {
 		fmt.Fprintf(w, "  %sEmail Security:%s\n", Bold, Reset)
-		
+
 		if misconfigs.EmailSec.SPF != "" {
 			spfColor := Green
 			if strings.Contains(misconfigs.EmailSec.SPF, "+all") || strings.Contains(misconfigs.EmailSec.SPF, "?all") {
@@ -176,7 +176,7 @@ func (a *ANSIRenderer) renderMisconfigurations(w io.Writer, misconfigs *models.M
 		if misconfigs.EmailSec.IsWeak {
 			fmt.Fprintf(w, "    %s⚠ Weak email security configuration%s\n", Red, Reset)
 		}
-		
+
 		hasIssues = true
 	}
 

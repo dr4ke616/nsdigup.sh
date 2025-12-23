@@ -49,7 +49,7 @@ func (s *SSLScanner) ScanCertificates(ctx context.Context, domain string) (*mode
 	status := "Active"
 	if time.Now().After(cert.NotAfter) {
 		status = "Expired"
-	} else if time.Now().Add(30*24*time.Hour).After(cert.NotAfter) {
+	} else if time.Now().Add(30 * 24 * time.Hour).After(cert.NotAfter) {
 		status = "Expiring Soon"
 	}
 

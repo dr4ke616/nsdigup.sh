@@ -95,8 +95,7 @@ func TestSSLScanner_WildcardDetection(t *testing.T) {
 	scanner := NewSSLScanner()
 	ctx := context.Background()
 
-	knownWildcardDomains := []string{
-	}
+	knownWildcardDomains := []string{}
 
 	for _, domain := range knownWildcardDomains {
 		certData, err := scanner.ScanCertificates(ctx, domain)

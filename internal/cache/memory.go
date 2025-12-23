@@ -39,23 +39,23 @@ func NewMemoryStore(ttl time.Duration) *MemoryStore {
 		entries: make(map[string]*cacheEntry),
 		ttl:     ttl,
 	}
-	
+
 	if ttl > 0 {
 		go store.cleanupExpired()
 	}
-	
+
 	return store
 }
 
 func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	
+
 	entry, exists := m.entries[domain]
 	if !exists {
 		return nil, false
 	}
-	
+
 	if entry.isExpired() {
 		m.mutex.RUnlock()
 		m.mutex.Lock()
@@ -64,14 +64,14 @@ func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 		m.mutex.RLock()
 		return nil, false
 	}
-	
+
 	return entry.report, true
 }
 
 func (m *MemoryStore) Set(domain string, report *models.Report) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	m.entries[domain] = &cacheEntry{
 		report:    report,
 		timestamp: time.Now(),
@@ -82,28 +82,28 @@ func (m *MemoryStore) Set(domain string, report *models.Report) {
 func (m *MemoryStore) Delete(domain string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	delete(m.entries, domain)
 }
 
 func (m *MemoryStore) Clear() {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
-	
+
 	m.entries = make(map[string]*cacheEntry)
 }
 
 func (m *MemoryStore) Size() int {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	
+
 	return len(m.entries)
 }
 
 func (m *MemoryStore) cleanupExpired() {
 	ticker := time.NewTicker(m.ttl / 2)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		m.mutex.Lock()
 		now := time.Now()
