@@ -4,34 +4,35 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-// Config holds all application configuration
 type Config struct {
-	App   AppConfig   `json:"app"`
+	// Application server configuration
+	App AppConfig `json:"app"`
+	// Caching configuration
 	Cache CacheConfig `json:"cache"`
 }
 
-// AppConfig holds application-level configuration
 type AppConfig struct {
-	Name string `json:"name"`
+	// The hostname for which the application runs
 	Host string `json:"host"`
-	Port string `json:"port"`
+	// The port for which the application runs
+	Port int `json:"port"`
+	// The address in which is exposed publically as the application entry point
+	AdvertisedAddress string `json:"advertised_address"`
 }
 
-// Address returns the full host:port address for the server
 func (a *AppConfig) Address() string {
-	return a.Host + a.Port
+	return fmt.Sprintf("%s:%d", a.Host, a.Port)
 }
 
-// BaseURL returns the base URL for the server
 func (a *AppConfig) BaseURL() string {
-	return "http://" + a.Host + a.Port
+	return fmt.Sprintf("http://%s:%d", a.Host, a.Port)
 }
 
-// CacheMode represents the cache implementation mode
 type CacheMode string
 
 const (
@@ -39,10 +40,11 @@ const (
 	CacheModeMem  CacheMode = "mem"
 )
 
-// CacheConfig holds cache-related configuration
 type CacheConfig struct {
-	Mode CacheMode     `json:"mode"`
-	TTL  time.Duration `json:"ttl"`
+	// Caching mode to run, either "mem" for in memory store or "none" for a no-op store.
+	Mode CacheMode `json:"mode"`
+	// For how long each cached record is to sit in store
+	TTL time.Duration `json:"ttl"`
 }
 
 // Load loads configuration from environment variables and command line flags
@@ -50,9 +52,9 @@ type CacheConfig struct {
 func Load() (*Config, error) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "checks.sh",
-			Host: "0.0.0.0",
-			Port: ":8080",
+			AdvertisedAddress: "http://checks.sh",
+			Host:              "0.0.0.0",
+			Port:              8080,
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
@@ -80,8 +82,8 @@ func Load() (*Config, error) {
 // loadFromEnv loads configuration from environment variables
 func (c *Config) loadFromEnv() error {
 	// App configuration
-	if name := os.Getenv("CHECKS_APP_NAME"); name != "" {
-		c.App.Name = name
+	if addr := os.Getenv("CHECKS_ADVERTISED_ADDRESS"); addr != "" {
+		c.App.AdvertisedAddress = addr
 	}
 
 	if host := os.Getenv("CHECKS_HOST"); host != "" {
@@ -89,21 +91,11 @@ func (c *Config) loadFromEnv() error {
 	}
 
 	if port := os.Getenv("CHECKS_PORT"); port != "" {
-		// Ensure port starts with `:` if not provided
-		if port[0] != ':' {
-			port = ":" + port
+		p, err := strconv.Atoi(port)
+		if err != nil {
+			return fmt.Errorf("invalid CHECKS_PORT value '%s': %w", port, err)
 		}
-		c.App.Port = port
-	}
-
-	// Cache configuration
-	if mode := os.Getenv("CHECKS_CACHE_MODE"); mode != "" {
-		switch CacheMode(mode) {
-		case CacheModeNone, CacheModeMem:
-			c.Cache.Mode = CacheMode(mode)
-		default:
-			return fmt.Errorf("invalid CHECKS_CACHE_MODE value '%s': must be 'none' or 'mem'", mode)
-		}
+		c.App.Port = p
 	}
 
 	if ttl := os.Getenv("CHECKS_CACHE_TTL"); ttl != "" {
@@ -114,49 +106,51 @@ func (c *Config) loadFromEnv() error {
 		c.Cache.TTL = duration
 	}
 
-	return nil
-}
-
-// loadFromFlags loads configuration from command line flags
-func (c *Config) loadFromFlags() error {
-	// Only parse flags if they haven't been parsed yet and we're not in a test
-	if !flag.Parsed() && !isTest() {
-		var (
-			appName   = flag.String("name", c.App.Name, "Application name")
-			host      = flag.String("host", c.App.Host, "Server host address")
-			port      = flag.String("port", c.App.Port, "Server port (with or without colon prefix)")
-			cacheMode = flag.String("cache-mode", string(c.Cache.Mode), "Cache mode: 'none' or 'mem'")
-			cacheTTL  = flag.Duration("cache-ttl", c.Cache.TTL, "Cache TTL duration (e.g., 5m, 1h)")
-		)
-
-		flag.Parse()
-
-		// Apply flag values
-		c.App.Name = *appName
-		c.App.Host = *host
-
-		// Ensure port starts with `:` if not provided
-		if (*port)[0] != ':' {
-			c.App.Port = ":" + *port
-		} else {
-			c.App.Port = *port
-		}
-
-		// Validate and set cache mode
-		switch CacheMode(*cacheMode) {
-		case CacheModeNone, CacheModeMem:
-			c.Cache.Mode = CacheMode(*cacheMode)
+	if mode := os.Getenv("CHECKS_CACHE_MODE"); mode != "" {
+		switch CacheMode(mode) {
+		case CacheModeNone:
+			c.Cache.Mode = CacheModeNone
+		case CacheModeMem:
+			c.Cache.Mode = CacheModeMem
 		default:
-			return fmt.Errorf("invalid cache-mode value '%s': must be 'none' or 'mem'", *cacheMode)
+			return fmt.Errorf("invalid CHECKS_CACHE_MODE value '%s': must be 'none' or 'mem'", mode)
 		}
-
-		c.Cache.TTL = *cacheTTL
 	}
 
 	return nil
 }
 
-// isTest checks if we're running in test mode
+func (c *Config) loadFromFlags() error {
+	if !flag.Parsed() && !isTest() {
+		var (
+			host              = flag.String("host", c.App.Host, "Server host address")
+			port              = flag.Int("port", c.App.Port, "Server port to bind to")
+			advertisedAddress = flag.String("name", c.App.AdvertisedAddress, "The address in which is exposed publically as the application entry point")
+			cacheMode         = flag.String("cache-mode", string(c.Cache.Mode), "Cache mode: 'none' or 'mem'")
+			cacheTTL          = flag.Duration("cache-ttl", c.Cache.TTL, "Cache TTL duration (e.g., 5m, 1h)")
+		)
+
+		flag.Parse()
+
+		c.App.AdvertisedAddress = *advertisedAddress
+		c.App.Host = *host
+		c.App.Port = *port
+		c.Cache.TTL = *cacheTTL
+
+		switch CacheMode(*cacheMode) {
+		case CacheModeNone:
+			c.Cache.Mode = CacheModeNone
+		case CacheModeMem:
+			c.Cache.Mode = CacheModeMem
+		default:
+			return fmt.Errorf("invalid cache-mode value '%s': must be 'none' or 'mem'", *cacheMode)
+		}
+	}
+
+	return nil
+}
+
+// isTest checks if we're running in test mode - just to avoid issues when parsing flags
 func isTest() bool {
 	for _, arg := range os.Args {
 		if strings.HasPrefix(arg, "-test.") {
@@ -168,16 +162,16 @@ func isTest() bool {
 
 // validate ensures the configuration is valid
 func (c *Config) validate() error {
-	if c.App.Name == "" {
-		return fmt.Errorf("app name cannot be empty")
-	}
-
-	if c.App.Port == "" {
-		return fmt.Errorf("port cannot be empty")
+	if c.App.Port < 0 || c.App.Port > 65_535 {
+		return fmt.Errorf("port must be in range 0-65535")
 	}
 
 	if c.Cache.TTL < 0 {
 		return fmt.Errorf("cache TTL cannot be negative")
+	}
+
+	if c.App.AdvertisedAddress == "" {
+		return fmt.Errorf("advertised address cannot be empty")
 	}
 
 	// If cache is disabled, TTL doesn't matter
@@ -190,6 +184,6 @@ func (c *Config) validate() error {
 
 // String returns a string representation of the config for debugging
 func (c *Config) String() string {
-	return fmt.Sprintf("Config{App: {Name: %s, Port: %s}, Cache: {Mode: %v, TTL: %s}}",
-		c.App.Name, c.App.Port, c.Cache.Mode, c.Cache.TTL)
+	return fmt.Sprintf("Config{App: {Host: %s, Port: %d, AdvertisedAddress: %s}, Cache: {Mode: %v, TTL: %s}}",
+		c.App.Host, c.App.Port, c.App.AdvertisedAddress, c.Cache.Mode, c.Cache.TTL)
 }

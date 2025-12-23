@@ -19,7 +19,7 @@ func TestHandler_JSONFormat(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -76,7 +76,7 @@ func TestHandler_ANSIFormat(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -142,7 +142,7 @@ func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -225,7 +225,7 @@ func TestHandler_FormatQueryParameterOverridesAcceptHeader(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -262,7 +262,7 @@ func TestHandler_InvalidFormat(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -297,7 +297,7 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)

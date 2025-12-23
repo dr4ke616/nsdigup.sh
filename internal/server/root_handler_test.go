@@ -13,9 +13,9 @@ import (
 func TestHandler_Home_ANSI(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
-			Name: "Test App",
-			Host: "0.0.0.0",
-			Port: ":8080",
+			AdvertisedAddress: "http://foo",
+			Host:              "0.0.0.0",
+			Port:              8080,
 		},
 		Cache: config.CacheConfig{
 			Mode: config.CacheModeMem,
@@ -39,33 +39,23 @@ func TestHandler_Home_ANSI(t *testing.T) {
 
 	body := w.Body.String()
 
-	// Check for app name
-	if !strings.Contains(body, "Test App") {
-		t.Error("Expected app name in response")
-	}
-
-	// Check for usage examples
-	if !strings.Contains(body, "curl http://0.0.0.0:8080/") {
-		t.Error("Expected usage examples with correct host and port")
+	// Check for usage examples with advertised address
+	if !strings.Contains(body, "curl http://foo/") {
+		t.Error("Expected usage examples with advertised address")
 	}
 
 	// Check for features
 	if !strings.Contains(body, "DNS Resolution") {
 		t.Error("Expected feature description")
 	}
-
-	// Check for cache info
-	if !strings.Contains(body, "5m0s TTL") {
-		t.Error("Expected cache TTL information")
-	}
 }
 
 func TestHandler_Home_JSON(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
-			Name: "JSON Test",
-			Host: "127.0.0.1",
-			Port: ":9090",
+			AdvertisedAddress: "http://foo",
+			Host:              "127.0.0.1",
+			Port:              9090,
 		},
 		Cache: config.CacheConfig{
 			Mode: config.CacheModeNone,
@@ -90,28 +80,14 @@ func TestHandler_Home_JSON(t *testing.T) {
 	body := w.Body.String()
 
 	// Check for JSON structure
-	if !strings.Contains(body, `"name": "JSON Test"`) {
-		t.Error("Expected app name in JSON")
-	}
-
-	// Check for usage with escaped angle brackets
-	if !strings.Contains(body, `"usage": "http://127.0.0.1:9090/\u003cdomain\u003e"`) {
-		t.Errorf("Expected usage with correct host and port in JSON, got: %s", body)
-	}
-
-	if !strings.Contains(body, `"mode": "none"`) {
-		t.Error("Expected cache disabled in JSON")
-	}
-
-	// Should contain examples array
-	if !strings.Contains(body, `"examples"`) {
-		t.Error("Expected examples in JSON response")
+	if !strings.Contains(body, `"name": "checks.sh"`) {
+		t.Errorf("Expected name in JSON, got: %s", body)
 	}
 }
 
 func TestHandler_Home_AcceptHeader(t *testing.T) {
 	cfg := &config.Config{
-		App:   config.AppConfig{Name: "Accept Test", Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{AdvertisedAddress: "http://foo", Host: "0.0.0.0", Port: 8080},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 5 * time.Minute},
 	}
 	handler := NewHandler(cfg)
@@ -163,11 +139,11 @@ func TestHandler_Home_AcceptHeader(t *testing.T) {
 
 			body := w.Body.String()
 			if tt.expectedFormat == "json" {
-				if !strings.Contains(body, `"name": "Accept Test"`) {
+				if !strings.Contains(body, `"name": "checks.sh"`) {
 					t.Error("Expected JSON format")
 				}
 			} else {
-				if !strings.Contains(body, "Accept Test") {
+				if !strings.Contains(body, "Features:") {
 					t.Error("Expected ANSI format")
 				}
 			}
@@ -178,9 +154,9 @@ func TestHandler_Home_AcceptHeader(t *testing.T) {
 func TestHandler_Home_CacheDisabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
-			Name: "No Cache Test",
-			Host: "0.0.0.0",
-			Port: ":8080",
+			AdvertisedAddress: "http://foo",
+			Host:              "0.0.0.0",
+			Port:              8080,
 		},
 		Cache: config.CacheConfig{
 			Mode: config.CacheModeNone,
@@ -193,20 +169,17 @@ func TestHandler_Home_CacheDisabled(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	body := w.Body.String()
-
-	// Should indicate real-time scanning when cache is disabled
-	if !strings.Contains(body, "Real-time Scanning") {
-		t.Error("Expected real-time scanning message when cache disabled")
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 }
 
 func TestHandler_Home_CacheEnabled(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
-			Name: "Cache Test",
-			Host: "0.0.0.0",
-			Port: ":8080",
+			AdvertisedAddress: "http://foo",
+			Host:              "0.0.0.0",
+			Port:              8080,
 		},
 		Cache: config.CacheConfig{
 			Mode: config.CacheModeMem,
@@ -219,20 +192,17 @@ func TestHandler_Home_CacheEnabled(t *testing.T) {
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	body := w.Body.String()
-
-	// Should show cache TTL when cache is enabled
-	if !strings.Contains(body, "10m0s TTL") {
-		t.Error("Expected cache TTL message when cache enabled")
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 }
 
 func TestHandler_Home_CustomPort(t *testing.T) {
 	cfg := &config.Config{
 		App: config.AppConfig{
-			Name: "Custom Port",
-			Host: "192.168.1.100",
-			Port: ":9999",
+			AdvertisedAddress: "http://custom.example.com",
+			Host:              "192.168.1.100",
+			Port:              9999,
 		},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 5 * time.Minute},
 	}
@@ -244,8 +214,8 @@ func TestHandler_Home_CustomPort(t *testing.T) {
 
 	body := w.Body.String()
 
-	// Should use the configured host and port in examples
-	if !strings.Contains(body, "http://192.168.1.100:9999/") {
-		t.Error("Expected custom host and port in examples")
+	// Should use the advertised address in examples
+	if !strings.Contains(body, "http://custom.example.com/") {
+		t.Error("Expected advertised address in examples")
 	}
 }

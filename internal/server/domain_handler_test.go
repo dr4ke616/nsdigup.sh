@@ -43,7 +43,7 @@ func TestHandler_CacheHit(t *testing.T) {
 
 	// Create handler with cache enabled
 	cfg := &config.Config{
-		App: config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App: config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{
 			Mode: config.CacheModeMem,
 			TTL:  1 * time.Hour,
@@ -97,7 +97,7 @@ func TestHandler_CacheMiss(t *testing.T) {
 
 	// Create handler with very short TTL
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Millisecond},
 	}
 	handler := NewHandler(cfg)
@@ -132,7 +132,7 @@ func TestHandler_MultipleDomains(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -179,7 +179,7 @@ func TestHandler_ScannerError(t *testing.T) {
 	}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -205,7 +205,7 @@ func TestHandler_ScannerError(t *testing.T) {
 
 func TestHandler_EmptyDomain(t *testing.T) {
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
@@ -248,7 +248,7 @@ func TestHandler_JSONResponse(t *testing.T) {
 	mock := &mockScanner{report: mockReport}
 
 	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: ":8080"},
+		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)

@@ -20,12 +20,12 @@ func TestConfig_Load_Defaults(t *testing.T) {
 	}
 
 	// Check default values
-	if cfg.App.Name != "checks.sh" {
-		t.Errorf("Expected app name 'checks.sh', got '%s'", cfg.App.Name)
+	if cfg.App.AdvertisedAddress != "http://checks.sh" {
+		t.Errorf("Expected advertised address 'http://checks.sh', got '%s'", cfg.App.AdvertisedAddress)
 	}
 
-	if cfg.App.Port != ":8080" {
-		t.Errorf("Expected port ':8080', got '%s'", cfg.App.Port)
+	if cfg.App.Port != 8080 {
+		t.Errorf("Expected port 8080, got %d", cfg.App.Port)
 	}
 
 	if cfg.Cache.Mode != CacheModeMem {
@@ -43,7 +43,7 @@ func TestConfig_LoadFromEnv(t *testing.T) {
 	resetFlags()
 
 	// Set environment variables
-	os.Setenv("CHECKS_APP_NAME", "test-app")
+	os.Setenv("CHECKS_ADVERTISED_ADDRESS", "http://test-app.com")
 	os.Setenv("CHECKS_PORT", "9090")
 	os.Setenv("CHECKS_CACHE_MODE", "none")
 	os.Setenv("CHECKS_CACHE_TTL", "10m")
@@ -54,12 +54,12 @@ func TestConfig_LoadFromEnv(t *testing.T) {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
 
-	if cfg.App.Name != "test-app" {
-		t.Errorf("Expected app name 'test-app', got '%s'", cfg.App.Name)
+	if cfg.App.AdvertisedAddress != "http://test-app.com" {
+		t.Errorf("Expected advertised address 'http://test-app.com', got '%s'", cfg.App.AdvertisedAddress)
 	}
 
-	if cfg.App.Port != ":9090" {
-		t.Errorf("Expected port ':9090', got '%s'", cfg.App.Port)
+	if cfg.App.Port != 9090 {
+		t.Errorf("Expected port 9090, got %d", cfg.App.Port)
 	}
 
 	if cfg.Cache.Mode != CacheModeNone {
@@ -71,20 +71,16 @@ func TestConfig_LoadFromEnv(t *testing.T) {
 	}
 }
 
-func TestConfig_LoadFromEnv_PortWithColon(t *testing.T) {
+func TestConfig_LoadFromEnv_InvalidPort(t *testing.T) {
 	clearEnv()
 	resetFlags()
 
 	os.Setenv("CHECKS_PORT", ":3000")
 	defer clearEnv()
 
-	cfg, err := Load()
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
-
-	if cfg.App.Port != ":3000" {
-		t.Errorf("Expected port ':3000', got '%s'", cfg.App.Port)
+	_, err := Load()
+	if err == nil {
+		t.Error("Expected error for invalid port value")
 	}
 }
 
@@ -114,11 +110,12 @@ func TestConfig_LoadFromEnv_InvalidDuration(t *testing.T) {
 	}
 }
 
-func TestConfig_Validate_EmptyAppName(t *testing.T) {
+func TestConfig_Validate_EmptyAdvertisedAddress(t *testing.T) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "",
-			Port: ":8080",
+			Host:              "0.0.0.0",
+			Port:              8080,
+			AdvertisedAddress: "",
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
@@ -128,15 +125,16 @@ func TestConfig_Validate_EmptyAppName(t *testing.T) {
 
 	err := cfg.validate()
 	if err == nil {
-		t.Error("Expected validation error for empty app name")
+		t.Error("Expected validation error for empty advertised address")
 	}
 }
 
-func TestConfig_Validate_EmptyPort(t *testing.T) {
+func TestConfig_Validate_InvalidPort(t *testing.T) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "test",
-			Port: "",
+			Host:              "0.0.0.0",
+			Port:              70000,
+			AdvertisedAddress: "http://test.com",
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
@@ -146,15 +144,16 @@ func TestConfig_Validate_EmptyPort(t *testing.T) {
 
 	err := cfg.validate()
 	if err == nil {
-		t.Error("Expected validation error for empty port")
+		t.Error("Expected validation error for invalid port")
 	}
 }
 
 func TestConfig_Validate_NegativeTTL(t *testing.T) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "test",
-			Port: ":8080",
+			Host:              "0.0.0.0",
+			Port:              8080,
+			AdvertisedAddress: "http://test.com",
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
@@ -171,8 +170,9 @@ func TestConfig_Validate_NegativeTTL(t *testing.T) {
 func TestConfig_Validate_ZeroTTLWithCacheEnabled(t *testing.T) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "test",
-			Port: ":8080",
+			Host:              "0.0.0.0",
+			Port:              8080,
+			AdvertisedAddress: "http://test.com",
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
@@ -189,8 +189,9 @@ func TestConfig_Validate_ZeroTTLWithCacheEnabled(t *testing.T) {
 func TestConfig_Validate_ZeroTTLWithCacheDisabled(t *testing.T) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "test",
-			Port: ":8080",
+			Host:              "0.0.0.0",
+			Port:              8080,
+			AdvertisedAddress: "http://test.com",
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeNone,
@@ -207,8 +208,9 @@ func TestConfig_Validate_ZeroTTLWithCacheDisabled(t *testing.T) {
 func TestConfig_String(t *testing.T) {
 	cfg := &Config{
 		App: AppConfig{
-			Name: "test-app",
-			Port: ":8080",
+			Host:              "0.0.0.0",
+			Port:              8080,
+			AdvertisedAddress: "http://test-app.com",
 		},
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
@@ -217,7 +219,7 @@ func TestConfig_String(t *testing.T) {
 	}
 
 	str := cfg.String()
-	expected := "Config{App: {Name: test-app, Port: :8080}, Cache: {Mode: mem, TTL: 5m0s}}"
+	expected := "Config{App: {Host: 0.0.0.0, Port: 8080, AdvertisedAddress: http://test-app.com}, Cache: {Mode: mem, TTL: 5m0s}}"
 	if str != expected {
 		t.Errorf("Expected string '%s', got '%s'", expected, str)
 	}
@@ -227,9 +229,10 @@ func TestConfig_String(t *testing.T) {
 
 func clearEnv() {
 	envVars := []string{
-		"CHECKS_APP_NAME",
+		"CHECKS_ADVERTISED_ADDRESS",
+		"CHECKS_HOST",
 		"CHECKS_PORT",
-		"CHECKS_CACHE_ENABLED",
+		"CHECKS_CACHE_MODE",
 		"CHECKS_CACHE_TTL",
 	}
 
