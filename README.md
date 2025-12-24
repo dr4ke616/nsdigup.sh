@@ -1,11 +1,10 @@
 # checks.sh
 
 ## Outstanding TODOs
-1. Decide on domain name. Update app name everywhere.
+1. Decide on domain name. Update app name everywhere. (nsdigup.sh,)
 2. Finalize home page -- usage, description, docs
-3. Update README.md. Create make file or investigate proper use of go.mod
-4. Review and rename `scanner/config.go`
-5. Fix cache expiry ttl issue
+3. Review and rename `scanner/config.go`
+4. Fix cache expiry ttl issue
 
 A `curl`-first domain health utility that aggregates Domain Identity, Certificate Health, and Configuration gaps into a high-density ANSI report.
 
@@ -17,11 +16,19 @@ A `curl`-first domain health utility that aggregates Domain Identity, Certificat
 - **Fast Response**: <2s response time with concurrent scanning
 - **Standard Library Only**: No external dependencies
 
-## Usage
+## Quick Start
 
-Start the server:
+### Development
+Start the server in dev mode:
 ```bash
-go run cmd/checks/main.go
+make dev
+```
+
+### Production Build
+Build and run:
+```bash
+make build
+make run
 ```
 
 Query a domain:
@@ -29,23 +36,61 @@ Query a domain:
 curl http://localhost:8080/google.com | jq '.'
 ```
 
-## Build
-
+Check version:
 ```bash
-go build -o checks cmd/checks/main.go
-./checks
+./bin/checks --version
 ```
 
-## Test
+## Build & Development
 
-Run all tests:
+The project uses a Makefile for common development tasks:
+
+### Building
 ```bash
-go test ./... -v
+make build              # Build binary to bin/checks
+make build-all          # Build for multiple platforms
+make install            # Install to $GOPATH/bin
+make clean              # Remove build artifacts
 ```
 
-Run scanner tests specifically:
+### Testing
 ```bash
-go test ./internal/scanner/ -v
+make test               # Run all tests
+make test-verbose       # Run tests with verbose output
+make test-coverage      # Generate coverage report
+make test-coverage-html # Generate HTML coverage report
+```
+
+### Code Quality
+```bash
+make fmt                # Format all Go files
+make vet                # Run go vet
+make lint               # Run golangci-lint
+make check              # Run fmt, vet, and test
+```
+
+### Running
+```bash
+make run                # Build and run
+make dev                # Run without building (go run)
+```
+
+### Version Management
+Version information is automatically injected during build from git:
+```bash
+make build
+./bin/checks --version  # Shows version, commit, and build time
+```
+
+To create a versioned release:
+```bash
+git tag v1.0.0
+make build
+```
+
+See all available commands:
+```bash
+make help
 ```
 
 ## Architecture

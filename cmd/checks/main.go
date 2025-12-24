@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -12,7 +13,26 @@ import (
 	"checks/internal/server"
 )
 
+// Version information (set via ldflags during build)
+var (
+	Version   = "dev"
+	Commit    = "unknown"
+	BuildTime = "unknown"
+)
+
 func main() {
+	// Parse command-line flags
+	versionFlag := flag.Bool("version", false, "Print version information and exit")
+	flag.Parse()
+
+	// Handle version flag
+	if *versionFlag {
+		fmt.Printf("checks version %s\n", Version)
+		fmt.Printf("  commit: %s\n", Commit)
+		fmt.Printf("  built: %s\n", BuildTime)
+		os.Exit(0)
+	}
+
 	// display the banner
 	banner.PrintAsciBanner()
 
