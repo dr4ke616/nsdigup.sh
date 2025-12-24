@@ -1,12 +1,14 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
 
 	"checks/internal/cache"
 	"checks/internal/config"
+	"checks/internal/logger"
 	"checks/internal/renderer"
 	"checks/internal/scanner"
 )
@@ -17,19 +19,27 @@ type Handler struct {
 	jsonRenderer renderer.Renderer
 	ansiRenderer renderer.Renderer
 	config       *config.Config
+	logger       *slog.Logger
 }
 
 func NewHandler(cfg *config.Config) *Handler {
+	log := logger.Get()
 	var store cache.Store
 
 	switch cfg.Cache.Mode {
 	case config.CacheModeMem:
 		store = cache.NewMemoryStore(cfg.Cache.TTL)
+		log.Info("cache initialized",
+			slog.String("mode", "memory"),
+			slog.Duration("ttl", cfg.Cache.TTL))
 	case config.CacheModeNone:
 		store = cache.NewNoOpStore()
+		log.Info("cache initialized", slog.String("mode", "none"))
 	default:
 		// Default to no-op store for unknown cache modes
 		store = cache.NewNoOpStore()
+		log.Warn("unknown cache mode, using no-op",
+			slog.String("mode", string(cfg.Cache.Mode)))
 	}
 
 	return &Handler{
@@ -38,6 +48,7 @@ func NewHandler(cfg *config.Config) *Handler {
 		jsonRenderer: renderer.NewJSONRenderer(),
 		ansiRenderer: renderer.NewANSIRenderer(),
 		config:       cfg,
+		logger:       log,
 	}
 }
 

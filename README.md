@@ -1,12 +1,12 @@
 # checks.sh
 
 ## Outstanding TODOs
-1. Remove `?format` url param, and rely only on `Accept` header
+1. Remove `?format` url param, and rely only on `Accept` header. Use const values for format operations (json/plain)
 2. Decide on domain name. Update app name everywhere.
-4. Finalize home page. 
-5. Standardise logging with configurable levels
-6. Update README.md. Create make file.
-7. Review and rename `scanner/config.go`
+4. Finalize home page. Fix banner positioning.
+5. Update README.md. Create make file or investigate proper use of go.mod
+6. Review and rename `scanner/config.go`
+7. Fix cache expiry ttl issue
 
 A `curl`-first domain health utility that aggregates Domain Identity, Certificate Health, and Configuration gaps into a high-density ANSI report.
 

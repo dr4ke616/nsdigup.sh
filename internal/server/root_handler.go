@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"checks/internal/banner"
@@ -11,6 +12,7 @@ import (
 // ServeHome handles the root "/" route
 func (h *Handler) ServeHome(w http.ResponseWriter, r *http.Request) {
 	format := h.getOutputFormat(r)
+	h.logger.Debug("serving home page", slog.String("format", format))
 
 	switch format {
 	case "ansi", "text":
@@ -24,7 +26,7 @@ func (h *Handler) writeHomeANSI(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	address := h.config.App.AdvertisedAddress
 
-	output := banner.AsciiBanner + "\n\n"
+	output := banner.GetAsciBanner() + "\n\n"
 
 	output += "Features:\n"
 	output += "  • DNS Resolution & Nameserver Analysis\n"

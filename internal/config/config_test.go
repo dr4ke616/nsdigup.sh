@@ -121,6 +121,10 @@ func TestConfig_Validate_EmptyAdvertisedAddress(t *testing.T) {
 			Mode: CacheModeMem,
 			TTL:  5 * time.Minute,
 		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
+		},
 	}
 
 	err := cfg.validate()
@@ -139,6 +143,10 @@ func TestConfig_Validate_InvalidPort(t *testing.T) {
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
 			TTL:  5 * time.Minute,
+		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
 		},
 	}
 
@@ -159,6 +167,10 @@ func TestConfig_Validate_NegativeTTL(t *testing.T) {
 			Mode: CacheModeMem,
 			TTL:  -1 * time.Minute,
 		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
+		},
 	}
 
 	err := cfg.validate()
@@ -177,6 +189,10 @@ func TestConfig_Validate_ZeroTTLWithCacheEnabled(t *testing.T) {
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
 			TTL:  0,
+		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
 		},
 	}
 
@@ -197,6 +213,10 @@ func TestConfig_Validate_ZeroTTLWithCacheDisabled(t *testing.T) {
 			Mode: CacheModeNone,
 			TTL:  0,
 		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
+		},
 	}
 
 	err := cfg.validate()
@@ -215,6 +235,10 @@ func TestConfig_String(t *testing.T) {
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
 			TTL:  5 * time.Minute,
+		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
 		},
 	}
 

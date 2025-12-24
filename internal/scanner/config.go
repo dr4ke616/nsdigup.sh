@@ -3,11 +3,13 @@ package scanner
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"strings"
 	"time"
 
+	"checks/internal/logger"
 	"checks/pkg/models"
 )
 
@@ -99,10 +101,17 @@ func (c *ConfigScanner) checkEmailSecurity(ctx context.Context, domain string) (
 
 	if emailSec.SPF == "" {
 		emailSec.IsWeak = true
+		logger.Get().Debug("SPF record missing",
+			slog.String("domain", domain))
 	}
-	if emailSec.DMARC == "" {
-		emailSec.DMARC = "none"
+	if emailSec.DMARC == "" || emailSec.DMARC == "none" {
+		if emailSec.DMARC == "" {
+			emailSec.DMARC = "none"
+		}
 		emailSec.IsWeak = true
+		logger.Get().Debug("weak DMARC policy",
+			slog.String("domain", domain),
+			slog.String("policy", emailSec.DMARC))
 	}
 
 	return emailSec, nil

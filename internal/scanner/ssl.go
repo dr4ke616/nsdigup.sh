@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	"net"
 	"strings"
 	"time"
 
+	"checks/internal/logger"
 	"checks/pkg/models"
 )
 
@@ -51,6 +53,12 @@ func (s *SSLScanner) ScanCertificates(ctx context.Context, domain string) (*mode
 		status = "Expired"
 	} else if time.Now().Add(30 * 24 * time.Hour).After(cert.NotAfter) {
 		status = "Expiring Soon"
+		daysRemaining := int(time.Until(cert.NotAfter).Hours() / 24)
+		logger.Get().Debug("certificate expiring soon",
+			slog.String("domain", domain),
+			slog.String("common_name", cert.Subject.CommonName),
+			slog.Int("days_remaining", daysRemaining),
+			slog.Time("expires", cert.NotAfter))
 	}
 
 	isWildcard := false

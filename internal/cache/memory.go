@@ -1,9 +1,11 @@
 package cache
 
 import (
+	"log/slog"
 	"sync"
 	"time"
 
+	"checks/internal/logger"
 	"checks/pkg/models"
 )
 
@@ -45,10 +47,19 @@ func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 
 	entry, exists := m.entries[domain]
 	if !exists {
+		logger.Get().Debug("cache miss",
+			slog.String("domain", domain),
+			slog.String("reason", "not_found"))
 		return nil, false
 	}
 
 	if entry.isExpired() {
+		age := time.Since(entry.timestamp)
+		logger.Get().Debug("cache miss",
+			slog.String("domain", domain),
+			slog.String("reason", "expired"),
+			slog.Duration("age", age))
+
 		m.mutex.RUnlock()
 		m.mutex.Lock()
 		delete(m.entries, domain)
@@ -56,6 +67,12 @@ func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 		m.mutex.RLock()
 		return nil, false
 	}
+
+	age := time.Since(entry.timestamp)
+	logger.Get().Debug("cache hit",
+		slog.String("domain", domain),
+		slog.Duration("age", age),
+		slog.Duration("remaining_ttl", m.ttl-age))
 
 	return entry.report, true
 }
@@ -69,6 +86,10 @@ func (m *MemoryStore) Set(domain string, report *models.Report) {
 		timestamp: time.Now(),
 		ttl:       m.ttl,
 	}
+
+	logger.Get().Debug("cache set",
+		slog.String("domain", domain),
+		slog.Int("total_entries", len(m.entries)))
 }
 
 func (m *MemoryStore) Delete(domain string) {
@@ -99,11 +120,20 @@ func (m *MemoryStore) cleanupExpired() {
 	for range ticker.C {
 		m.mutex.Lock()
 		now := time.Now()
+		removed := 0
 		for domain, entry := range m.entries {
 			if entry.ttl > 0 && now.Sub(entry.timestamp) > entry.ttl {
 				delete(m.entries, domain)
+				removed++
 			}
 		}
+		remaining := len(m.entries)
 		m.mutex.Unlock()
+
+		if removed > 0 {
+			logger.Get().Debug("cache cleanup completed",
+				slog.Int("removed", removed),
+				slog.Int("remaining", remaining))
+		}
 	}
 }

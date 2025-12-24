@@ -14,6 +14,8 @@ type Config struct {
 	App AppConfig `json:"app"`
 	// Caching configuration
 	Cache CacheConfig `json:"cache"`
+	// Logging configuration
+	Log LogConfig `json:"log"`
 }
 
 type AppConfig struct {
@@ -47,6 +49,13 @@ type CacheConfig struct {
 	TTL time.Duration `json:"ttl"`
 }
 
+type LogConfig struct {
+	// Log level: debug, info, warn, error
+	Level string `json:"level"`
+	// Log format: text, json
+	Format string `json:"format"`
+}
+
 // Load loads configuration from environment variables and command line flags
 // Command line flags take precedence over environment variables
 func Load() (*Config, error) {
@@ -59,6 +68,10 @@ func Load() (*Config, error) {
 		Cache: CacheConfig{
 			Mode: CacheModeMem,
 			TTL:  5 * time.Minute,
+		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
 		},
 	}
 
@@ -117,6 +130,15 @@ func (c *Config) loadFromEnv() error {
 		}
 	}
 
+	// Logging configuration
+	if level := os.Getenv("CHECKS_LOG_LEVEL"); level != "" {
+		c.Log.Level = strings.ToLower(level)
+	}
+
+	if format := os.Getenv("CHECKS_LOG_FORMAT"); format != "" {
+		c.Log.Format = strings.ToLower(format)
+	}
+
 	return nil
 }
 
@@ -128,6 +150,8 @@ func (c *Config) loadFromFlags() error {
 			advertisedAddress = flag.String("name", c.App.AdvertisedAddress, "The address in which is exposed publically as the application entry point")
 			cacheMode         = flag.String("cache-mode", string(c.Cache.Mode), "Cache mode: 'none' or 'mem'")
 			cacheTTL          = flag.Duration("cache-ttl", c.Cache.TTL, "Cache TTL duration (e.g., 5m, 1h)")
+			logLevel          = flag.String("log-level", c.Log.Level, "Log level: debug, info, warn, error")
+			logFormat         = flag.String("log-format", c.Log.Format, "Log format: text, json")
 		)
 
 		flag.Parse()
@@ -136,6 +160,8 @@ func (c *Config) loadFromFlags() error {
 		c.App.Host = *host
 		c.App.Port = *port
 		c.Cache.TTL = *cacheTTL
+		c.Log.Level = strings.ToLower(*logLevel)
+		c.Log.Format = strings.ToLower(*logFormat)
 
 		switch CacheMode(*cacheMode) {
 		case CacheModeNone:
@@ -177,6 +203,17 @@ func (c *Config) validate() error {
 	// If cache is disabled, TTL doesn't matter
 	if c.Cache.Mode == CacheModeMem && c.Cache.TTL == 0 {
 		return fmt.Errorf("cache TTL cannot be zero when cache is enabled")
+	}
+
+	// Validate log level
+	validLevels := map[string]bool{"debug": true, "info": true, "warn": true, "error": true}
+	if !validLevels[c.Log.Level] {
+		return fmt.Errorf("invalid log level '%s': must be debug, info, warn, or error", c.Log.Level)
+	}
+
+	// Validate log format
+	if c.Log.Format != "text" && c.Log.Format != "json" {
+		return fmt.Errorf("invalid log format '%s': must be text or json", c.Log.Format)
 	}
 
 	return nil

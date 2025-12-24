@@ -2,32 +2,51 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"checks/internal/banner"
 	"checks/internal/config"
+	"checks/internal/logger"
 	"checks/internal/server"
 )
 
 func main() {
+	// display the banner
+	banner.PrintAsciBanner()
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to load configuration: %v\n", err)
+		os.Exit(1)
 	}
 
-	// Create handler with configuration
-	handler := server.NewHandler(cfg)
+	// Initialize logger
+	log, err := logger.Init(cfg.Log.Level, cfg.Log.Format)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
 
-	// Display startup banner
-	fmt.Print(banner.AsciiBanner)
-	fmt.Printf("\033[1mServer:\033[0m    %s\n", cfg.App.BaseURL())
-	fmt.Printf("\033[1mCache:\033[0m     mode=%s, ttl=%v\n", cfg.Cache.Mode, cfg.Cache.TTL)
-	fmt.Printf("\033[1mUsage:\033[0m     curl %s/<domain>\n", cfg.App.AdvertisedAddress)
-	fmt.Printf("\033[1mHome:\033[0m      curl %s/\n\n", cfg.App.AdvertisedAddress)
+	// Create handler with configuration and wrap it using a logging middleware
+	handler := server.LoggingMiddleware(server.NewHandler(cfg))
+
+	// Structured startup logs
+	log.Info("application starting",
+		slog.String("host", cfg.App.Host),
+		slog.Int("port", cfg.App.Port),
+		slog.String("advertised_address", cfg.App.AdvertisedAddress),
+		slog.String("cache_mode", string(cfg.Cache.Mode)),
+		slog.Duration("cache_ttl", cfg.Cache.TTL),
+		slog.String("log_level", cfg.Log.Level),
+		slog.String("log_format", cfg.Log.Format))
+
+	log.Info("starting http server", slog.String("address", cfg.App.Address()))
 
 	if err := http.ListenAndServe(cfg.App.Address(), handler); err != nil {
-		log.Fatal(err)
+		log.Error("server failed", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 }
