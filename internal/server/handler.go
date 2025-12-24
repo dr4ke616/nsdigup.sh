@@ -34,9 +34,9 @@ func NewHandler(cfg *config.Config) *Handler {
 			slog.Duration("ttl", cfg.Cache.TTL))
 	case config.CacheModeNone:
 		store = cache.NewNoOpStore()
-		log.Info("cache initialized", slog.String("mode", "none"))
+		log.Info("cache initialized",
+			slog.String("mode", "none"))
 	default:
-		// Default to no-op store for unknown cache modes
 		store = cache.NewNoOpStore()
 		log.Warn("unknown cache mode, using no-op",
 			slog.String("mode", string(cfg.Cache.Mode)))
@@ -65,19 +65,32 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) getOutputFormat(r *http.Request) string {
-	// Check query parameter first
-	if format := r.URL.Query().Get("format"); format != "" {
-		return format
-	}
+type OutputFormat int
 
+const (
+	OutputFormatANSI OutputFormat = iota
+	OutputFormatJSON
+)
+
+func (f OutputFormat) String() string {
+	switch f {
+	case OutputFormatANSI:
+		return "ansi"
+	case OutputFormatJSON:
+		return "json"
+	default:
+		return "unknown"
+	}
+}
+
+func (h *Handler) getOutputFormat(r *http.Request) OutputFormat {
 	// Check Accept header
 	accept := r.Header.Get("Accept")
 	if strings.Contains(accept, "application/json") {
-		return "json"
+		return OutputFormatJSON
 	}
 
-	return "ansi"
+	return OutputFormatANSI
 }
 
 func isDomainPath(path string) bool {

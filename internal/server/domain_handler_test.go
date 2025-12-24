@@ -254,7 +254,8 @@ func TestHandler_JSONResponse(t *testing.T) {
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 
-	req := httptest.NewRequest("GET", "/example.com?format=json", nil)
+	req := httptest.NewRequest("GET", "/example.com", nil)
+	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 

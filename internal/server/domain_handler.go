@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -21,11 +22,11 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Determine output format from Accept header or query parameter
+	// Determine output format from Accept header
 	format := h.getOutputFormat(r)
 	h.logger.Debug("processing domain check",
 		slog.String("domain", domain),
-		slog.String("format", format))
+		slog.String("format", format.String()))
 
 	// Try cache first (read-through cache strategy)
 	if cachedReport, found := h.cache.Get(domain); found {
@@ -61,22 +62,25 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 	h.writeResponse(w, report, format)
 }
 
-func (h *Handler) writeResponse(w http.ResponseWriter, report interface{}, format string) {
+func (h *Handler) writeResponse(w http.ResponseWriter, report interface{}, format OutputFormat) {
 	switch format {
-	case "ansi", "text":
+	case OutputFormatANSI:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		if err := h.ansiRenderer.Render(w, report.(*models.Report)); err != nil {
 			h.logger.Error("failed to render ANSI response",
 				slog.String("error", err.Error()))
 			http.Error(w, "Failed to render ANSI response: "+err.Error(), http.StatusInternalServerError)
 		}
-	default: // json
+	case OutputFormatJSON:
 		w.Header().Set("Content-Type", "application/json")
 		if err := h.jsonRenderer.Render(w, report.(*models.Report)); err != nil {
 			h.logger.Error("failed to render JSON response",
 				slog.String("error", err.Error()))
 			http.Error(w, "Failed to render JSON response: "+err.Error(), http.StatusInternalServerError)
 		}
+	default:
+		// This should never happen if OutputFormat enum is properly maintained
+		panic(fmt.Sprintf("unsupported output format: %v", format))
 	}
 }
 

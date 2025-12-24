@@ -64,7 +64,8 @@ func TestHandler_Home_JSON(t *testing.T) {
 	}
 	handler := NewHandler(cfg)
 
-	req := httptest.NewRequest("GET", "/?format=json", nil)
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 

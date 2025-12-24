@@ -12,13 +12,16 @@ import (
 // ServeHome handles the root "/" route
 func (h *Handler) ServeHome(w http.ResponseWriter, r *http.Request) {
 	format := h.getOutputFormat(r)
-	h.logger.Debug("serving home page", slog.String("format", format))
+	h.logger.Debug("serving home page", slog.String("format", format.String()))
 
 	switch format {
-	case "ansi", "text":
+	case OutputFormatANSI:
 		h.writeHomeANSI(w)
-	default: // json
+	case OutputFormatJSON:
 		h.writeHomeJSON(w)
+	default:
+		// This should never happen if OutputFormat enum is properly maintained
+		panic(fmt.Sprintf("unsupported output format: %v", format))
 	}
 }
 

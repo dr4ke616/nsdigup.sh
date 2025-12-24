@@ -25,8 +25,9 @@ func TestHandler_JSONFormat(t *testing.T) {
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 
-	// Test explicit JSON format via query parameter
-	req := httptest.NewRequest("GET", "/json-test.com?format=json", nil)
+	// Test explicit JSON format via Accept header
+	req := httptest.NewRequest("GET", "/json-test.com", nil)
+	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -82,8 +83,8 @@ func TestHandler_ANSIFormat(t *testing.T) {
 	handler := NewHandler(cfg)
 	handler.scanner = mock
 
-	// Test explicit ANSI format via query parameter
-	req := httptest.NewRequest("GET", "/ansi-test.com?format=ansi", nil)
+	// Test default ANSI format (no Accept header)
+	req := httptest.NewRequest("GET", "/ansi-test.com", nil)
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
@@ -217,78 +218,6 @@ func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {
 	}
 }
 
-func TestHandler_FormatQueryParameterOverridesAcceptHeader(t *testing.T) {
-	mockReport := &models.Report{
-		Target:   "override-test.com",
-		Identity: models.Identity{IP: "13.14.15.16"},
-	}
-	mock := &mockScanner{report: mockReport}
-
-	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
-		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
-	}
-	handler := NewHandler(cfg)
-	handler.scanner = mock
-
-	// Request ANSI via query parameter but send JSON accept header
-	req := httptest.NewRequest("GET", "/override-test.com?format=ansi", nil)
-	req.Header.Set("Accept", "application/json")
-	w := httptest.NewRecorder()
-
-	handler.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status 200, got %d", w.Code)
-	}
-
-	// Should use ANSI format despite JSON accept header
-	contentType := w.Header().Get("Content-Type")
-	if !strings.Contains(contentType, "text/plain") {
-		t.Errorf("Expected text/plain, got %s", contentType)
-	}
-
-	body := w.Body.String()
-	if !strings.Contains(body, "checks.sh") {
-		t.Error("Expected ANSI format despite JSON Accept header")
-	}
-}
-
-func TestHandler_InvalidFormat(t *testing.T) {
-	mockReport := &models.Report{
-		Target:   "invalid-test.com",
-		Identity: models.Identity{IP: "17.18.19.20"},
-	}
-	mock := &mockScanner{report: mockReport}
-
-	cfg := &config.Config{
-		App:   config.AppConfig{Host: "0.0.0.0", Port: 8080, AdvertisedAddress: "http://localhost:8080"},
-		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
-	}
-	handler := NewHandler(cfg)
-	handler.scanner = mock
-
-	// Request invalid format - should default to JSON
-	req := httptest.NewRequest("GET", "/invalid-test.com?format=xml", nil)
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status 200, got %d", w.Code)
-	}
-
-	// Should default to JSON for invalid format
-	contentType := w.Header().Get("Content-Type")
-	if !strings.Contains(contentType, "application/json") {
-		t.Errorf("Expected JSON default for invalid format, got %s", contentType)
-	}
-
-	body := w.Body.String()
-	if !strings.Contains(body, `"target": "invalid-test.com"`) {
-		t.Error("Expected JSON format for invalid format request")
-	}
-}
-
 func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	mockReport := &models.Report{
 		Target:   "cache-format-test.com",
@@ -304,7 +233,8 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	handler.scanner = mock
 
 	// First request as JSON
-	req1 := httptest.NewRequest("GET", "/cache-format-test.com?format=json", nil)
+	req1 := httptest.NewRequest("GET", "/cache-format-test.com", nil)
+	req1.Header.Set("Accept", "application/json")
 	w1 := httptest.NewRecorder()
 	handler.ServeHTTP(w1, req1)
 
@@ -313,7 +243,7 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	}
 
 	// Second request as ANSI - should hit cache but render differently
-	req2 := httptest.NewRequest("GET", "/cache-format-test.com?format=ansi", nil)
+	req2 := httptest.NewRequest("GET", "/cache-format-test.com", nil)
 	w2 := httptest.NewRecorder()
 	handler.ServeHTTP(w2, req2)
 
