@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,27 +12,11 @@ import (
 	"checks/internal/server"
 )
 
-// Version information (set via ldflags during build)
-var (
-	Version   = "dev"
-	Commit    = "unknown"
-	BuildTime = "unknown"
-)
-
 func main() {
-	// Parse command-line flags
-	versionFlag := flag.Bool("version", false, "Print version information and exit")
-	flag.Parse()
+	// Display version if requested
+	DisplayVersionIfFlagged()
 
-	// Handle version flag
-	if *versionFlag {
-		fmt.Printf("checks version %s\n", Version)
-		fmt.Printf("  commit: %s\n", Commit)
-		fmt.Printf("  built: %s\n", BuildTime)
-		os.Exit(0)
-	}
-
-	// display the banner
+	// Display the banner
 	banner.PrintAsciBanner()
 
 	// Load configuration
@@ -55,6 +38,9 @@ func main() {
 
 	// Structured startup logs
 	log.Info("application starting",
+		slog.String("version", Version),
+		slog.String("commit", Commit),
+		slog.String("build_time", BuildTime),
 		slog.String("host", cfg.App.Host),
 		slog.Int("port", cfg.App.Port),
 		slog.String("advertised_address", cfg.App.AdvertisedAddress),
