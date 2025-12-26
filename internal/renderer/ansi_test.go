@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 func TestANSIRenderer_Render(t *testing.T) {
@@ -49,8 +49,8 @@ func TestANSIRenderer_Render(t *testing.T) {
 	output := buf.String()
 
 	// Check for main sections
-	if !strings.Contains(output, "checks.sh") {
-		t.Error("Expected header to contain 'checks.sh'")
+	if !strings.Contains(output, "nsdigup.sh") {
+		t.Error("Expected header to contain 'nsdigup.sh'")
 	}
 
 	if !strings.Contains(output, "[ IDENTITY ]") {

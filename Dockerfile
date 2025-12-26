@@ -25,23 +25,23 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates tzdata
 
 # Create non-root user
-RUN addgroup -g 1000 checks && \
-    adduser -D -u 1000 -G checks checks
+RUN addgroup -g 1000 nsdigup && \
+    adduser -D -u 1000 -G nsdigup nsdigup
 
 # Set working directory
 WORKDIR /app
 
 # Copy binary from builder
-COPY --from=builder /build/bin/checks /app/checks
+COPY --from=builder /build/bin/nsdigup.sh /app/nsdigup.sh
 
 # Change ownership
-RUN chown -R checks:checks /app
+RUN chown -R nsdigup:nsdigup /app
 
 # Switch to non-root user
-USER checks
+USER nsdigup
 
 # Expose default port (adjust if needed)
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["/app/checks"]
+ENTRYPOINT ["/app/nsdigup.sh"]

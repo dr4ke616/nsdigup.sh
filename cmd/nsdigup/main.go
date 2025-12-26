@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"os"
 
-	"checks/internal/banner"
-	"checks/internal/config"
-	"checks/internal/logger"
-	"checks/internal/server"
+	"nsdigup/internal/banner"
+	"nsdigup/internal/config"
+	"nsdigup/internal/logger"
+	"nsdigup/internal/server"
 )
 
 func main() {

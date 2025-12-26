@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 // ServeDomain handles the "/{domain}" route for domain scanning

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"checks/internal/scanner/tools"
-	"checks/pkg/models"
+	"nsdigup/internal/scanner/tools"
+	"nsdigup/pkg/models"
 )
 
 type CertificateScanner struct {

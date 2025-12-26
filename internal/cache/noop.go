@@ -1,6 +1,6 @@
 package cache
 
-import "checks/pkg/models"
+import "nsdigup/pkg/models"
 
 type NoOpStore struct{}
 

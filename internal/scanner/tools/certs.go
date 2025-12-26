@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"checks/internal/logger"
+	"nsdigup/internal/logger"
 )
 
 // CertInfo contains the certificate details extracted from a TLS connection.

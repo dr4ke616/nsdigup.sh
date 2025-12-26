@@ -20,8 +20,8 @@ func TestConfig_Load_Defaults(t *testing.T) {
 	}
 
 	// Check default values
-	if cfg.App.AdvertisedAddress != "http://checks.sh" {
-		t.Errorf("Expected advertised address 'http://checks.sh', got '%s'", cfg.App.AdvertisedAddress)
+	if cfg.App.AdvertisedAddress != "https://nsdigup.sh" {
+		t.Errorf("Expected advertised address 'https://nsdigup.sh', got '%s'", cfg.App.AdvertisedAddress)
 	}
 
 	if cfg.App.Port != 8080 {
@@ -43,10 +43,10 @@ func TestConfig_LoadFromEnv(t *testing.T) {
 	resetFlags()
 
 	// Set environment variables
-	os.Setenv("CHECKS_ADVERTISED_ADDRESS", "http://test-app.com")
-	os.Setenv("CHECKS_PORT", "9090")
-	os.Setenv("CHECKS_CACHE_MODE", "none")
-	os.Setenv("CHECKS_CACHE_TTL", "10m")
+	os.Setenv("NSDIGUP_ADVERTISED_ADDRESS", "http://test-app.com")
+	os.Setenv("NSDIGUP_PORT", "9090")
+	os.Setenv("NSDIGUP_CACHE_MODE", "none")
+	os.Setenv("NSDIGUP_CACHE_TTL", "10m")
 	defer clearEnv()
 
 	cfg, err := Load()
@@ -75,7 +75,7 @@ func TestConfig_LoadFromEnv_InvalidPort(t *testing.T) {
 	clearEnv()
 	resetFlags()
 
-	os.Setenv("CHECKS_PORT", ":3000")
+	os.Setenv("NSDIGUP_PORT", ":3000")
 	defer clearEnv()
 
 	_, err := Load()
@@ -88,7 +88,7 @@ func TestConfig_LoadFromEnv_InvalidMode(t *testing.T) {
 	clearEnv()
 	resetFlags()
 
-	os.Setenv("CHECKS_CACHE_MODE", "maybe")
+	os.Setenv("NSDIGUP_CACHE_MODE", "maybe")
 	defer clearEnv()
 
 	_, err := Load()
@@ -101,7 +101,7 @@ func TestConfig_LoadFromEnv_InvalidDuration(t *testing.T) {
 	clearEnv()
 	resetFlags()
 
-	os.Setenv("CHECKS_CACHE_TTL", "invalid")
+	os.Setenv("NSDIGUP_CACHE_TTL", "invalid")
 	defer clearEnv()
 
 	_, err := Load()
@@ -253,11 +253,11 @@ func TestConfig_String(t *testing.T) {
 
 func clearEnv() {
 	envVars := []string{
-		"CHECKS_ADVERTISED_ADDRESS",
-		"CHECKS_HOST",
-		"CHECKS_PORT",
-		"CHECKS_CACHE_MODE",
-		"CHECKS_CACHE_TTL",
+		"NSDIGUP_ADVERTISED_ADDRESS",
+		"NSDIGUP_HOST",
+		"NSDIGUP_PORT",
+		"NSDIGUP_CACHE_MODE",
+		"NSDIGUP_CACHE_TTL",
 	}
 
 	for _, env := range envVars {

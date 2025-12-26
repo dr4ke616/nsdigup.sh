@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"checks/internal/logger"
-	"checks/pkg/models"
+	"nsdigup/internal/logger"
+	"nsdigup/pkg/models"
 )
 
 // CheckEmailSecurity analyzes SPF and DMARC records for the given domain.

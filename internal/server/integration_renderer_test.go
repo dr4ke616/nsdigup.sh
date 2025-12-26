@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"checks/internal/config"
-	"checks/pkg/models"
+	"nsdigup/internal/config"
+	"nsdigup/pkg/models"
 )
 
 func TestHandler_JSONFormat(t *testing.T) {
@@ -98,8 +98,8 @@ func TestHandler_ANSIFormat(t *testing.T) {
 	body := w.Body.String()
 
 	// Check for ANSI formatting
-	if !strings.Contains(body, "checks.sh") {
-		t.Error("Expected checks.sh header")
+	if !strings.Contains(body, "nsdigup.sh") {
+		t.Error("Expected nsdigup.sh header")
 	}
 
 	if !strings.Contains(body, "[ IDENTITY ]") {
@@ -203,7 +203,7 @@ func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {
 					t.Errorf("Expected JSON format, got: %s", body[:min(100, len(body))])
 				}
 			} else {
-				if !strings.Contains(body, "checks.sh") {
+				if !strings.Contains(body, "nsdigup.sh") {
 					t.Errorf("Expected ANSI format, got: %s", body[:min(100, len(body))])
 				}
 			}
@@ -249,11 +249,11 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	json_response := w1.Body.String()
 	ansi_response := w2.Body.String()
 
-	if strings.Contains(json_response, "checks.sh") {
+	if strings.Contains(json_response, "nsdigup.sh") {
 		t.Error("First response should be JSON, not ANSI")
 	}
 
-	if !strings.Contains(ansi_response, "checks.sh") {
+	if !strings.Contains(ansi_response, "nsdigup.sh") {
 		t.Error("Second response should be ANSI")
 	}
 

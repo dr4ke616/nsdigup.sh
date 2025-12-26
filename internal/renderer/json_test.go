@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 func TestJSONRenderer_Render(t *testing.T) {

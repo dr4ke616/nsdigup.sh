@@ -18,7 +18,7 @@ func DisplayVersionIfFlagged() {
 	flag.Parse()
 
 	if *versionFlag {
-		fmt.Printf("checks version %s\n", Version)
+		fmt.Printf("nsdigup.sh version %s\n", Version)
 		fmt.Printf("  commit: %s\n", Commit)
 		fmt.Printf("  built: %s\n", BuildTime)
 		os.Exit(0)

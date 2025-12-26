@@ -1,7 +1,4 @@
-# checks.sh
-
-## Outstanding TODOs
-1. Decide on domain name. Update app name everywhere. (nsdigup.sh,)
+# nsdigup.sh
 
 A `curl`-first domain health utility that aggregates Domain Identity, Certificate Health, and Configuration gaps into a high-density ANSI report.
 
@@ -35,7 +32,7 @@ curl http://localhost:8080/google.com | jq '.'
 
 Check version:
 ```bash
-./bin/checks --version
+./bin/nsdigup.sh --version
 ```
 
 ## Build & Development
@@ -76,7 +73,7 @@ make dev                # Run without building (go run)
 Version information is automatically injected during build from git:
 ```bash
 make build
-./bin/checks --version  # Shows version, commit, and build time
+./bin/nsdigup.sh --version  # Shows version, commit, and build time
 ```
 
 To create a versioned release:
@@ -92,7 +89,7 @@ make help
 
 ## Architecture
 
-- `cmd/checks/main.go` - Application entry point
+- `cmd/nsdigup/main.go` - Application entry point
 - `internal/server/handler.go` - HTTP handlers
 - `internal/scanner/` - Domain scanning modules
   - `orchestrator.go` - Coordinates concurrent scans

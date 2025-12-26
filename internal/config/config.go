@@ -61,7 +61,7 @@ type LogConfig struct {
 func Load() (*Config, error) {
 	cfg := &Config{
 		App: AppConfig{
-			AdvertisedAddress: "http://checks.sh",
+			AdvertisedAddress: "https://nsdigup.sh",
 			Host:              "0.0.0.0",
 			Port:              8080,
 		},
@@ -95,47 +95,47 @@ func Load() (*Config, error) {
 // loadFromEnv loads configuration from environment variables
 func (c *Config) loadFromEnv() error {
 	// App configuration
-	if addr := os.Getenv("CHECKS_ADVERTISED_ADDRESS"); addr != "" {
+	if addr := os.Getenv("NSDIGUP_ADVERTISED_ADDRESS"); addr != "" {
 		c.App.AdvertisedAddress = addr
 	}
 
-	if host := os.Getenv("CHECKS_HOST"); host != "" {
+	if host := os.Getenv("NSDIGUP_HOST"); host != "" {
 		c.App.Host = host
 	}
 
-	if port := os.Getenv("CHECKS_PORT"); port != "" {
+	if port := os.Getenv("NSDIGUP_PORT"); port != "" {
 		p, err := strconv.Atoi(port)
 		if err != nil {
-			return fmt.Errorf("invalid CHECKS_PORT value '%s': %w", port, err)
+			return fmt.Errorf("invalid NSDIGUP_PORT value '%s': %w", port, err)
 		}
 		c.App.Port = p
 	}
 
-	if ttl := os.Getenv("CHECKS_CACHE_TTL"); ttl != "" {
+	if ttl := os.Getenv("NSDIGUP_CACHE_TTL"); ttl != "" {
 		duration, err := time.ParseDuration(ttl)
 		if err != nil {
-			return fmt.Errorf("invalid CHECKS_CACHE_TTL value '%s': %w", ttl, err)
+			return fmt.Errorf("invalid NSDIGUP_CACHE_TTL value '%s': %w", ttl, err)
 		}
 		c.Cache.TTL = duration
 	}
 
-	if mode := os.Getenv("CHECKS_CACHE_MODE"); mode != "" {
+	if mode := os.Getenv("NSDIGUP_CACHE_MODE"); mode != "" {
 		switch CacheMode(mode) {
 		case CacheModeNone:
 			c.Cache.Mode = CacheModeNone
 		case CacheModeMem:
 			c.Cache.Mode = CacheModeMem
 		default:
-			return fmt.Errorf("invalid CHECKS_CACHE_MODE value '%s': must be 'none' or 'mem'", mode)
+			return fmt.Errorf("invalid NSDIGUP_CACHE_MODE value '%s': must be 'none' or 'mem'", mode)
 		}
 	}
 
 	// Logging configuration
-	if level := os.Getenv("CHECKS_LOG_LEVEL"); level != "" {
+	if level := os.Getenv("NSDIGUP_LOG_LEVEL"); level != "" {
 		c.Log.Level = strings.ToLower(level)
 	}
 
-	if format := os.Getenv("CHECKS_LOG_FORMAT"); format != "" {
+	if format := os.Getenv("NSDIGUP_LOG_FORMAT"); format != "" {
 		c.Log.Format = strings.ToLower(format)
 	}
 

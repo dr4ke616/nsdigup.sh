@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 type Renderer interface {
@@ -24,7 +24,7 @@ func (a *ANSIRenderer) Render(w io.Writer, report *models.Report) error {
 	}
 
 	// Header
-	fmt.Fprintf(w, "═══ checks.sh ═══\n")
+	fmt.Fprintf(w, "═══ nsdigup.sh ═══\n")
 	fmt.Fprintf(w, "Target: %s\n", report.Target)
 	fmt.Fprintf(w, "Scanned: %s\n\n", report.Timestamp.UTC().Format(time.RFC3339))
 

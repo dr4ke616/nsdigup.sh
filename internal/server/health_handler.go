@@ -1,8 +1,8 @@
 package server
 
 import (
-	"checks/internal/json"
 	"net/http"
+	"nsdigup/internal/json"
 )
 
 // ServeHealth handles the "/health" route

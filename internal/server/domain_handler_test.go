@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"checks/internal/config"
-	"checks/pkg/models"
+	"nsdigup/internal/config"
+	"nsdigup/pkg/models"
 )
 
 // Mock scanner for testing

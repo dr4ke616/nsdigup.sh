@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 func TestNoOpStore_Get(t *testing.T) {

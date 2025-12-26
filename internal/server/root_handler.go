@@ -1,12 +1,12 @@
 package server
 
 import (
-	"checks/internal/json"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"nsdigup/internal/json"
 
-	"checks/internal/banner"
+	"nsdigup/internal/banner"
 )
 
 // ServeHome handles the root "/" route
@@ -58,7 +58,7 @@ func (h *Handler) writeHomeJSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 	response := map[string]interface{}{
-		"name": "checks.sh",
+		"name": "nsdigup.sh",
 	}
 	json.GetJsonEncoder(w).Encode(response)
 }

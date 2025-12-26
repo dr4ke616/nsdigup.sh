@@ -61,7 +61,7 @@ func CheckHTTPSRedirect(ctx context.Context, domain string, timeout time.Duratio
 		}
 
 		// Set user agent
-		req.Header.Set("User-Agent", "checks.sh/1.0 (Security Scanner)")
+		req.Header.Set("User-Agent", "nsdigup.sh/1.0 (Security Scanner)")
 
 		resp, err := client.Do(req)
 		if err != nil {

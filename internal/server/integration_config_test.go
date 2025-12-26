@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"checks/internal/config"
-	"checks/pkg/models"
+	"nsdigup/internal/config"
+	"nsdigup/pkg/models"
 )
 
 func TestHandler_CacheEnabled(t *testing.T) {

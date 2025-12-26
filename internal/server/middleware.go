@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"checks/internal/logger"
+	"nsdigup/internal/logger"
 )
 
 type responseWriter struct {

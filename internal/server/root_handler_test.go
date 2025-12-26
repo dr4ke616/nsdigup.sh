@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/internal/config"
+	"nsdigup/internal/config"
 )
 
 func TestHandler_Home_ANSI(t *testing.T) {
@@ -81,7 +81,7 @@ func TestHandler_Home_JSON(t *testing.T) {
 	body := w.Body.String()
 
 	// Check for JSON structure
-	if !strings.Contains(body, `"name": "checks.sh"`) {
+	if !strings.Contains(body, `"name": "nsdigup.sh"`) {
 		t.Errorf("Expected name in JSON, got: %s", body)
 	}
 }
@@ -140,7 +140,7 @@ func TestHandler_Home_AcceptHeader(t *testing.T) {
 
 			body := w.Body.String()
 			if tt.expectedFormat == "json" {
-				if !strings.Contains(body, `"name": "checks.sh"`) {
+				if !strings.Contains(body, `"name": "nsdigup.sh"`) {
 					t.Error("Expected JSON format")
 				}
 			} else {

@@ -1,4 +1,4 @@
-module checks
+module nsdigup
 
 go 1.25.5
 

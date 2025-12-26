@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 type Store interface {

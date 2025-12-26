@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/internal/config"
+	"nsdigup/internal/config"
 )
 
 func TestHandler_ServeHealth(t *testing.T) {

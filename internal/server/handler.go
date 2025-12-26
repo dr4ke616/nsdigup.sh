@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"strings"
 
-	"checks/internal/cache"
-	"checks/internal/config"
-	"checks/internal/logger"
-	"checks/internal/renderer"
-	"checks/internal/scanner"
+	"nsdigup/internal/cache"
+	"nsdigup/internal/config"
+	"nsdigup/internal/logger"
+	"nsdigup/internal/renderer"
+	"nsdigup/internal/scanner"
 )
 
 type Handler struct {

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"checks/internal/logger"
-	"checks/pkg/models"
+	"nsdigup/internal/logger"
+	"nsdigup/pkg/models"
 )
 
 type Scanner interface {

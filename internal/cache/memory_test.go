@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/pkg/models"
+	"nsdigup/pkg/models"
 )
 
 func TestMemoryStore_BasicOperations(t *testing.T) {

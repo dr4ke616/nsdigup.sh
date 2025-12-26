@@ -3,8 +3,8 @@ package renderer
 import (
 	"io"
 
-	"checks/internal/json"
-	"checks/pkg/models"
+	"nsdigup/internal/json"
+	"nsdigup/pkg/models"
 )
 
 type JSONRenderer struct {

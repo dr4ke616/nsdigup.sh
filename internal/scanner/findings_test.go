@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"checks/internal/scanner/tools"
+	"nsdigup/internal/scanner/tools"
 )
 
 func TestFindingsScanner_ScanFindings(t *testing.T) {

@@ -1,9 +1,9 @@
 .PHONY: help build build-all test test-coverage test-verbose fmt lint clean install run dev
 
 # Application settings
-APP_NAME := checks
+APP_NAME := nsdigup.sh
 BINARY := bin/$(APP_NAME)
-MAIN_PATH := ./cmd/$(APP_NAME)
+MAIN_PATH := ./cmd/nsdigup
 
 # Version information (injected at build time)
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
