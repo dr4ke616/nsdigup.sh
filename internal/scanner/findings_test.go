@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"checks/internal/scanner/tools"
 )
 
 func TestFindingsScanner_ScanFindings(t *testing.T) {
@@ -101,7 +103,7 @@ func TestFindingsScanner_EmailSecurity(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.domain, func(t *testing.T) {
-			emailSec, err := CheckEmailSecurity(ctx, tt.domain)
+			emailSec, err := tools.CheckEmailSecurity(ctx, tt.domain)
 			if err != nil {
 				t.Errorf("Error checking email security: %v", err)
 				return
@@ -158,7 +160,7 @@ func TestFindingsScanner_Headers(t *testing.T) {
 
 	for _, domain := range domains {
 		t.Run(domain, func(t *testing.T) {
-			headers, err := CheckSecurityHeaders(ctx, domain, 5*time.Second)
+			headers, err := tools.CheckSecurityHeaders(ctx, domain, 5*time.Second)
 			if err != nil {
 				t.Logf("Could not check headers for %s: %v", domain, err)
 				return

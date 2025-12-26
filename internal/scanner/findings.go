@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"checks/internal/scanner/tools"
 	"checks/pkg/models"
 )
 
@@ -28,10 +29,10 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 	errChan := make(chan error, 3)
 	emailDone := make(chan bool, 1)
 	headersDone := make(chan bool, 1)
-	redirectChan := make(chan RedirectResult, 1)
+	redirectChan := make(chan tools.RedirectResult, 1)
 
 	go func() {
-		emailSec, err := CheckEmailSecurity(ctx, domain)
+		emailSec, err := tools.CheckEmailSecurity(ctx, domain)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -41,7 +42,7 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 	}()
 
 	go func() {
-		headers, err := CheckSecurityHeaders(ctx, domain, m.timeout)
+		headers, err := tools.CheckSecurityHeaders(ctx, domain, m.timeout)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -51,14 +52,14 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 	}()
 
 	go func() {
-		result := CheckHTTPSRedirect(ctx, domain, m.timeout)
+		result := tools.CheckHTTPSRedirect(ctx, domain, m.timeout)
 		redirectChan <- result
 	}()
 
 	timeout := time.NewTimer(m.timeout)
 	defer timeout.Stop()
 
-	var redirectResult RedirectResult
+	var redirectResult tools.RedirectResult
 
 	for i := 0; i < 3; i++ {
 		select {

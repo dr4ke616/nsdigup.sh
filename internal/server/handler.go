@@ -43,7 +43,7 @@ func NewHandler(cfg *config.Config) *Handler {
 	}
 
 	return &Handler{
-		scanner:      scanner.NewOrchestrator(),
+		scanner:      scanner.NewScanner(),
 		cache:        store,
 		jsonRenderer: renderer.NewJSONRenderer(),
 		ansiRenderer: renderer.NewANSIRenderer(),

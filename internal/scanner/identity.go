@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"checks/internal/scanner/tools"
 	"checks/pkg/models"
 )
 
@@ -28,14 +29,14 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 	// Channels for parallel checks
 	ipsChan := make(chan string, 1)
 	nsChan := make(chan []string, 1)
-	dnssecChan := make(chan DNSSECResult, 1)
-	caaChan := make(chan CAAResult, 1)
-	whoisChan := make(chan WHOISResult, 1)
+	dnssecChan := make(chan tools.DNSSECResult, 1)
+	caaChan := make(chan tools.CAAResult, 1)
+	whoisChan := make(chan tools.WHOISResult, 1)
 	errChan := make(chan error, 2)
 
 	// IP lookup
 	go func() {
-		ip, err := GetIPAddress(ctx, domain)
+		ip, err := tools.GetIPAddress(ctx, domain)
 		if err != nil {
 			errChan <- err
 			return
@@ -45,7 +46,7 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 
 	// Nameserver lookup
 	go func() {
-		nameservers, err := GetNameservers(ctx, domain)
+		nameservers, err := tools.GetNameservers(ctx, domain)
 		if err != nil {
 			errChan <- err
 			return
@@ -55,19 +56,19 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 
 	// DNSSEC validation
 	go func() {
-		result := CheckDNSSEC(ctx, domain)
+		result := tools.CheckDNSSEC(ctx, domain)
 		dnssecChan <- result
 	}()
 
 	// CAA records
 	go func() {
-		result := CheckCAA(ctx, domain)
+		result := tools.CheckCAA(ctx, domain)
 		caaChan <- result
 	}()
 
 	// WHOIS lookup
 	go func() {
-		result := CheckWHOIS(ctx, domain)
+		result := tools.CheckWHOIS(ctx, domain)
 		whoisChan <- result
 	}()
 
@@ -76,9 +77,9 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 
 	var ip string
 	var nameservers []string
-	var dnssecResult DNSSECResult
-	var caaResult CAAResult
-	var whoisResult WHOISResult
+	var dnssecResult tools.DNSSECResult
+	var caaResult tools.CAAResult
+	var whoisResult tools.WHOISResult
 	errors := []error{}
 
 	// Wait for all 5 checks to complete

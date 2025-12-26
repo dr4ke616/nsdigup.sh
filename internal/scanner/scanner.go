@@ -14,24 +14,23 @@ type Scanner interface {
 	Scan(ctx context.Context, domain string) (*models.Report, error)
 }
 
-type Orchestrator struct {
+type ScannerImpl struct {
 	identity    *IdentityScanner
 	certificate *CertificateScanner
 	findings    *FindingsScanner
 }
 
-func NewOrchestrator() *Orchestrator {
-	// Default timeout for each scanner
+func NewScanner() *ScannerImpl {
 	defaultTimeout := 10 * time.Second
 
-	return &Orchestrator{
+	return &ScannerImpl{
 		identity:    NewIdentityScanner(defaultTimeout),
 		certificate: NewCertificateScanner(defaultTimeout),
 		findings:    NewFindingsScanner(defaultTimeout),
 	}
 }
 
-func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report, error) {
+func (o *ScannerImpl) Scan(ctx context.Context, domain string) (*models.Report, error) {
 	log := logger.Get()
 	log.Debug("starting concurrent domain scan", slog.String("domain", domain))
 

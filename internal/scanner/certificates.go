@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"checks/internal/scanner/tools"
 	"checks/pkg/models"
 )
 
@@ -22,13 +23,13 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 	certData := &models.Certificates{}
 
 	// Channel for parallel checks
-	certChan := make(chan CertInfo, 1)
-	tlsChan := make(chan TLSAnalysisResult, 1)
+	certChan := make(chan tools.CertInfo, 1)
+	tlsChan := make(chan tools.TLSAnalysisResult, 1)
 	errChan := make(chan error, 2)
 
 	// Certificate check
 	go func() {
-		certDetails, err := GetCertDetails(domain, c.timeout)
+		certDetails, err := tools.GetCertDetails(domain, c.timeout)
 		if err != nil {
 			errChan <- err
 			return
@@ -38,15 +39,15 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 
 	// TLS analysis
 	go func() {
-		result := AnalyzeTLS(ctx, domain, c.timeout)
+		result := tools.AnalyzeTLS(ctx, domain, c.timeout)
 		tlsChan <- result
 	}()
 
 	timeout := time.NewTimer(c.timeout)
 	defer timeout.Stop()
 
-	var certDetails CertInfo
-	var tlsResult TLSAnalysisResult
+	var certDetails tools.CertInfo
+	var tlsResult tools.TLSAnalysisResult
 	errors := []error{}
 
 	// Wait for both checks to complete
