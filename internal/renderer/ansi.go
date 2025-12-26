@@ -26,7 +26,7 @@ func (a *ANSIRenderer) Render(w io.Writer, report *models.Report) error {
 	// Header
 	fmt.Fprintf(w, "═══ checks.sh ═══\n")
 	fmt.Fprintf(w, "Target: %s\n", report.Target)
-	fmt.Fprintf(w, "Scanned: %s\n\n", report.Timestamp.Format("2006-01-02 15:04:05 UTC"))
+	fmt.Fprintf(w, "Scanned: %s\n\n", report.Timestamp.UTC().Format(time.RFC3339))
 
 	// Identity section
 	if err := a.renderIdentity(w, &report.Identity); err != nil {
