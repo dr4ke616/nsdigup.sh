@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func TestMisconfigurationScanner_ScanMisconfigurations(t *testing.T) {
-	scanner := NewMisconfigurationScanner()
+func TestFindingsScanner_ScanFindings(t *testing.T) {
+	scanner := NewFindingsScanner()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -43,28 +43,28 @@ func TestMisconfigurationScanner_ScanMisconfigurations(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			misconfigs, err := scanner.ScanMisconfigurations(ctx, tt.domain)
+			findings, err := scanner.ScanFindings(ctx, tt.domain)
 
 			if err != nil && tt.expectNoErrors {
 				t.Errorf("Unexpected error: %v", err)
 				return
 			}
 
-			if misconfigs == nil {
-				t.Error("Expected misconfigurations object but got nil")
+			if findings == nil {
+				t.Error("Expected findings object but got nil")
 				return
 			}
 
 			if tt.checkEmail {
 				t.Logf("Email Security for %s:", tt.domain)
-				t.Logf("  SPF: %s", misconfigs.EmailSec.SPF)
-				t.Logf("  DMARC: %s", misconfigs.EmailSec.DMARC)
-				t.Logf("  IsWeak: %v", misconfigs.EmailSec.IsWeak)
+				t.Logf("  SPF: %s", findings.EmailSec.SPF)
+				t.Logf("  DMARC: %s", findings.EmailSec.DMARC)
+				t.Logf("  IsWeak: %v", findings.EmailSec.IsWeak)
 			}
 
 			if tt.checkHeaders {
-				t.Logf("Header Issues for %s: %d issues", tt.domain, len(misconfigs.Headers))
-				for _, issue := range misconfigs.Headers {
+				t.Logf("Header Issues for %s: %d issues", tt.domain, len(findings.Headers))
+				for _, issue := range findings.Headers {
 					t.Logf("  - %s", issue)
 				}
 			}
@@ -72,7 +72,7 @@ func TestMisconfigurationScanner_ScanMisconfigurations(t *testing.T) {
 	}
 }
 
-func TestMisconfigurationScanner_EmailSecurity(t *testing.T) {
+func TestFindingsScanner_EmailSecurity(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
@@ -142,7 +142,7 @@ func TestMisconfigurationScanner_EmailSecurity(t *testing.T) {
 	}
 }
 
-func TestMisconfigurationScanner_Headers(t *testing.T) {
+func TestFindingsScanner_Headers(t *testing.T) {
 	ctx := context.Background()
 
 	importantHeaders := []string{
@@ -191,14 +191,14 @@ func TestMisconfigurationScanner_Headers(t *testing.T) {
 	}
 }
 
-func TestMisconfigurationScanner_ContextTimeout(t *testing.T) {
-	scanner := NewMisconfigurationScanner()
+func TestFindingsScanner_ContextTimeout(t *testing.T) {
+	scanner := NewFindingsScanner()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	defer cancel()
 
 	time.Sleep(10 * time.Millisecond)
 
-	_, err := scanner.ScanMisconfigurations(ctx, "google.com")
+	_, err := scanner.ScanFindings(ctx, "google.com")
 	if err == nil {
 		t.Error("Expected timeout error but got none")
 	}

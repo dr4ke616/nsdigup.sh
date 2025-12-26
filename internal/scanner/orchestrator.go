@@ -15,16 +15,16 @@ type Scanner interface {
 }
 
 type Orchestrator struct {
-	identity         *IdentityScanner
-	certificate      *CertificateScanner
-	misconfiguration *MisconfigurationScanner
+	identity    *IdentityScanner
+	certificate *CertificateScanner
+	findings    *FindingsScanner
 }
 
 func NewOrchestrator() *Orchestrator {
 	return &Orchestrator{
-		identity:         NewIdentityScanner(),
-		certificate:      NewCertificateScanner(),
-		misconfiguration: NewMisconfigurationScanner(),
+		identity:    NewIdentityScanner(),
+		certificate: NewCertificateScanner(),
+		findings:    NewFindingsScanner(),
 	}
 }
 
@@ -95,28 +95,28 @@ func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report,
 		mu.Unlock()
 	}()
 
-	// Misconfiguration scan
+	// Findings scan
 	go func() {
 		defer wg.Done()
 		start := time.Now()
-		misconfigs, err := o.misconfiguration.ScanMisconfigurations(ctx, domain)
+		findings, err := o.findings.ScanFindings(ctx, domain)
 		duration := time.Since(start)
 
 		mu.Lock()
 		if err != nil {
-			log.Warn("misconfiguration scan failed",
+			log.Warn("findings scan failed",
 				slog.String("domain", domain),
 				slog.String("error", err.Error()),
 				slog.Duration("duration", duration))
 			errors = append(errors, err)
-		} else if misconfigs != nil {
-			log.Debug("misconfiguration scan completed",
+		} else if findings != nil {
+			log.Debug("findings scan completed",
 				slog.String("domain", domain),
 				slog.Duration("duration", duration),
-				slog.Int("header_issues", len(misconfigs.Headers)))
+				slog.Int("header_issues", len(findings.Headers)))
 		}
-		if misconfigs != nil {
-			report.Misconfigurations = *misconfigs
+		if findings != nil {
+			report.Findings = *findings
 		}
 		mu.Unlock()
 	}()

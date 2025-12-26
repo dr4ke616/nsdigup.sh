@@ -3,12 +3,12 @@ package models
 import "time"
 
 type Report struct {
-	Target            string            `json:"target"`
-	Timestamp         time.Time         `json:"timestamp"`
-	Identity          Identity          `json:"identity"`
-	Certificates      Certificates      `json:"certificates"`
-	Misconfigurations Misconfigurations `json:"misconfigurations"`
-	HTTP              HTTPDetails       `json:"http_details"`
+	Target       string       `json:"target"`
+	Timestamp    time.Time    `json:"timestamp"`
+	Identity     Identity     `json:"identity"`
+	Certificates Certificates `json:"certificates"`
+	Findings     Findings     `json:"findings"`
+	HTTP         HTTPDetails  `json:"http_details"`
 }
 
 type Identity struct {
@@ -42,7 +42,7 @@ type Certificates struct {
 	WeakCipherSuites []string `json:"weak_cipher_suites,omitempty"`
 }
 
-type Misconfigurations struct {
+type Findings struct {
 	DNSGlue  []string `json:"dns_glue_issues"`
 	EmailSec EmailSec `json:"email_security"`
 	Headers  []string `json:"header_issues"`

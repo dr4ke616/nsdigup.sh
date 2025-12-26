@@ -38,8 +38,8 @@ func (a *ANSIRenderer) Render(w io.Writer, report *models.Report) error {
 		return err
 	}
 
-	// Misconfigurations section
-	if err := a.renderMisconfigurations(w, &report.Misconfigurations); err != nil {
+	// Findings section
+	if err := a.renderFindings(w, &report.Findings); err != nil {
 		return err
 	}
 
@@ -177,75 +177,75 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 	return nil
 }
 
-func (a *ANSIRenderer) renderMisconfigurations(w io.Writer, misconfigs *models.Misconfigurations) error {
-	fmt.Fprintf(w, "[ MISCONFIGURATIONS ]\n")
+func (a *ANSIRenderer) renderFindings(w io.Writer, findings *models.Findings) error {
+	fmt.Fprintf(w, "[ FINDINGS ]\n")
 
 	hasIssues := false
 
 	// HTTPS Redirect - only show if data is present (not default empty struct)
-	hasRedirectData := misconfigs.HTTPSRedirect.Enabled ||
-		misconfigs.HTTPSRedirect.StatusCode != 0 ||
-		misconfigs.HTTPSRedirect.Error != "" ||
-		misconfigs.HTTPSRedirect.RedirectLoop
+	hasRedirectData := findings.HTTPSRedirect.Enabled ||
+		findings.HTTPSRedirect.StatusCode != 0 ||
+		findings.HTTPSRedirect.Error != "" ||
+		findings.HTTPSRedirect.RedirectLoop
 
 	if hasRedirectData {
-		if misconfigs.HTTPSRedirect.Enabled {
+		if findings.HTTPSRedirect.Enabled {
 			fmt.Fprintf(w, "  HTTPS Redirect: ✓ Enabled\n")
-			if misconfigs.HTTPSRedirect.FinalURL != "" {
-				fmt.Fprintf(w, "    Final URL: %s\n", misconfigs.HTTPSRedirect.FinalURL)
+			if findings.HTTPSRedirect.FinalURL != "" {
+				fmt.Fprintf(w, "    Final URL: %s\n", findings.HTTPSRedirect.FinalURL)
 			}
 		} else {
 			fmt.Fprintf(w, "  HTTPS Redirect: ⚠ Not Configured\n")
-			if misconfigs.HTTPSRedirect.Error != "" {
-				fmt.Fprintf(w, "    Error: %s\n", misconfigs.HTTPSRedirect.Error)
+			if findings.HTTPSRedirect.Error != "" {
+				fmt.Fprintf(w, "    Error: %s\n", findings.HTTPSRedirect.Error)
 			}
 			hasIssues = true
 		}
 
-		if misconfigs.HTTPSRedirect.RedirectLoop {
+		if findings.HTTPSRedirect.RedirectLoop {
 			fmt.Fprintf(w, "    ⚠ Redirect loop detected\n")
 			hasIssues = true
 		}
 	}
 
 	// Email security
-	if misconfigs.EmailSec.SPF != "" || misconfigs.EmailSec.DMARC != "" {
+	if findings.EmailSec.SPF != "" || findings.EmailSec.DMARC != "" {
 		fmt.Fprintf(w, "\n  Email Security:\n")
 
-		if misconfigs.EmailSec.SPF != "" {
-			fmt.Fprintf(w, "    SPF: %s\n", misconfigs.EmailSec.SPF)
+		if findings.EmailSec.SPF != "" {
+			fmt.Fprintf(w, "    SPF: %s\n", findings.EmailSec.SPF)
 		}
 
-		if misconfigs.EmailSec.DMARC != "" {
-			fmt.Fprintf(w, "    DMARC Policy: %s\n", misconfigs.EmailSec.DMARC)
+		if findings.EmailSec.DMARC != "" {
+			fmt.Fprintf(w, "    DMARC Policy: %s\n", findings.EmailSec.DMARC)
 		}
 
-		if misconfigs.EmailSec.IsWeak {
+		if findings.EmailSec.IsWeak {
 			fmt.Fprintf(w, "    ⚠ Weak email security configuration\n")
 			hasIssues = true
 		}
 	}
 
 	// Header issues
-	if len(misconfigs.Headers) > 0 {
+	if len(findings.Headers) > 0 {
 		fmt.Fprintf(w, "\n  Security Headers:\n")
-		for _, issue := range misconfigs.Headers {
+		for _, issue := range findings.Headers {
 			fmt.Fprintf(w, "    ⚠ %s\n", issue)
 		}
 		hasIssues = true
 	}
 
 	// DNS glue issues (reserved for future phases)
-	if len(misconfigs.DNSGlue) > 0 {
+	if len(findings.DNSGlue) > 0 {
 		fmt.Fprintf(w, "\n  DNS Issues:\n")
-		for _, issue := range misconfigs.DNSGlue {
+		for _, issue := range findings.DNSGlue {
 			fmt.Fprintf(w, "    ⚠ %s\n", issue)
 		}
 		hasIssues = true
 	}
 
 	if !hasIssues {
-		fmt.Fprintf(w, "  ✓ No misconfigurations detected\n")
+		fmt.Fprintf(w, "  ✓ No findings detected\n")
 	}
 
 	fmt.Fprintf(w, "\n")

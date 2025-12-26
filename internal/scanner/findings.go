@@ -8,14 +8,14 @@ import (
 	"checks/pkg/models"
 )
 
-type MisconfigurationScanner struct{}
+type FindingsScanner struct{}
 
-func NewMisconfigurationScanner() *MisconfigurationScanner {
-	return &MisconfigurationScanner{}
+func NewFindingsScanner() *FindingsScanner {
+	return &FindingsScanner{}
 }
 
-func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, domain string) (*models.Misconfigurations, error) {
-	misconfigs := &models.Misconfigurations{
+func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*models.Findings, error) {
+	findings := &models.Findings{
 		DNSGlue:  []string{},
 		Headers:  []string{},
 		EmailSec: models.EmailSec{},
@@ -31,7 +31,7 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 		if err != nil {
 			errChan <- err
 		} else {
-			misconfigs.EmailSec = emailSec
+			findings.EmailSec = emailSec
 		}
 		emailDone <- true
 	}()
@@ -41,7 +41,7 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 		if err != nil {
 			errChan <- err
 		} else {
-			misconfigs.Headers = headers
+			findings.Headers = headers
 		}
 		headersDone <- true
 	}()
@@ -59,9 +59,9 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 	for i := 0; i < 3; i++ {
 		select {
 		case <-ctx.Done():
-			return misconfigs, ctx.Err()
+			return findings, ctx.Err()
 		case <-timeout.C:
-			return misconfigs, fmt.Errorf("misconfiguration scan timeout")
+			return findings, fmt.Errorf("findings scan timeout")
 		case <-emailDone:
 		case <-headersDone:
 		case redirect := <-redirectChan:
@@ -71,7 +71,7 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 	}
 
 	// Set HTTPS redirect results
-	misconfigs.HTTPSRedirect = models.HTTPSRedirectCheck{
+	findings.HTTPSRedirect = models.HTTPSRedirectCheck{
 		Enabled:      redirectResult.Enabled,
 		StatusCode:   redirectResult.StatusCode,
 		FinalURL:     redirectResult.FinalURL,
@@ -79,5 +79,5 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 		Error:        redirectResult.Error,
 	}
 
-	return misconfigs, nil
+	return findings, nil
 }

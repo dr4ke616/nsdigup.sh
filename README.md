@@ -123,7 +123,7 @@ make help
       "is_wildcard": true
     }
   },
-  "misconfigurations": {
+  "findings": {
     "email_security": {
       "dmarc_policy": "reject",
       "spf_record": "v=spf1 include:_spf.google.com ~all"

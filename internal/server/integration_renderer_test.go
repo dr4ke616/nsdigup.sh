@@ -63,7 +63,7 @@ func TestHandler_ANSIFormat(t *testing.T) {
 			Status:     "Active",
 			IsWildcard: false,
 		},
-		Misconfigurations: models.Misconfigurations{
+		Findings: models.Findings{
 			EmailSec: models.EmailSec{
 				SPF:    "v=spf1 ~all",
 				DMARC:  "quarantine",
@@ -110,8 +110,8 @@ func TestHandler_ANSIFormat(t *testing.T) {
 		t.Error("Expected CERTIFICATES section")
 	}
 
-	if !strings.Contains(body, "[ MISCONFIGURATIONS ]") {
-		t.Error("Expected MISCONFIGURATIONS section")
+	if !strings.Contains(body, "[ FINDINGS ]") {
+		t.Error("Expected FINDINGS section")
 	}
 
 	// Check for content

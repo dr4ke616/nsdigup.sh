@@ -29,7 +29,7 @@ func TestANSIRenderer_Render(t *testing.T) {
 			Status:     "Active",
 			IsWildcard: false,
 		},
-		Misconfigurations: models.Misconfigurations{
+		Findings: models.Findings{
 			EmailSec: models.EmailSec{
 				SPF:    "v=spf1 include:_spf.google.com ~all",
 				DMARC:  "reject",
@@ -61,8 +61,8 @@ func TestANSIRenderer_Render(t *testing.T) {
 		t.Error("Expected CERTIFICATES section")
 	}
 
-	if !strings.Contains(output, "[ MISCONFIGURATIONS ]") {
-		t.Error("Expected MISCONFIGURATIONS section")
+	if !strings.Contains(output, "[ FINDINGS ]") {
+		t.Error("Expected FINDINGS section")
 	}
 
 	// Check content
@@ -101,7 +101,7 @@ func TestANSIRenderer_EmptyFields(t *testing.T) {
 		Certificates: models.Certificates{
 			// No current certificate
 		},
-		Misconfigurations: models.Misconfigurations{
+		Findings: models.Findings{
 			// No issues
 		},
 	}
@@ -138,9 +138,9 @@ func TestANSIRenderer_EmptyFields(t *testing.T) {
 		t.Error("Expected no certificate message")
 	}
 
-	// Should show no misconfigurations message
-	if !strings.Contains(output, "No misconfigurations detected") {
-		t.Error("Expected no misconfigurations message")
+	// Should show no findings message
+	if !strings.Contains(output, "No findings detected") {
+		t.Error("Expected no findings message")
 	}
 }
 
@@ -215,7 +215,7 @@ func TestANSIRenderer_WeakEmailSecurity(t *testing.T) {
 	report := &models.Report{
 		Target:    "weak.com",
 		Timestamp: time.Now(),
-		Misconfigurations: models.Misconfigurations{
+		Findings: models.Findings{
 			EmailSec: models.EmailSec{
 				SPF:    "v=spf1 +all", // Weak SPF
 				DMARC:  "none",        // Weak DMARC
