@@ -66,6 +66,7 @@ func (h *Handler) writeResponse(w http.ResponseWriter, report *models.Report, fo
 	switch format {
 	case OutputFormatANSI:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(200)
 		if err := h.ansiRenderer.Render(w, report); err != nil {
 			h.logger.Error("failed to render ANSI response",
 				slog.String("error", err.Error()))
@@ -73,6 +74,7 @@ func (h *Handler) writeResponse(w http.ResponseWriter, report *models.Report, fo
 		}
 	case OutputFormatJSON:
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
 		if err := h.jsonRenderer.Render(w, report); err != nil {
 			h.logger.Error("failed to render JSON response",
 				slog.String("error", err.Error()))

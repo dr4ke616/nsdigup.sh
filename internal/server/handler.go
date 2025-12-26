@@ -58,6 +58,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case isRootPath(path):
 		h.ServeHome(w, r)
+	case isHealthPath(path):
+		h.ServeHealth(w, r)
 	case isDomainPath(path):
 		h.ServeDomain(w, r)
 	default:
@@ -104,4 +106,8 @@ func isDomainPath(path string) bool {
 
 func isRootPath(path string) bool {
 	return path == "/"
+}
+
+func isHealthPath(path string) bool {
+	return path == "/health"
 }

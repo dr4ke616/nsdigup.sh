@@ -1,7 +1,7 @@
 package server
 
 import (
-	"encoding/json"
+	"checks/internal/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -56,12 +56,9 @@ func (h *Handler) writeHomeANSI(w http.ResponseWriter) {
 
 func (h *Handler) writeHomeJSON(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-
+	w.WriteHeader(200)
 	response := map[string]interface{}{
 		"name": "checks.sh",
 	}
-
-	encoder := json.NewEncoder(w)
-	encoder.SetIndent("", "  ")
-	encoder.Encode(response)
+	json.GetJsonEncoder(w).Encode(response)
 }

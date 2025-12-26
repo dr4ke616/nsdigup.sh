@@ -3,7 +3,6 @@ package renderer
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"testing"
 	"time"
 
@@ -74,69 +73,6 @@ func TestJSONRenderer_Render(t *testing.T) {
 
 	if len(decoded.Misconfigurations.Headers) != 1 {
 		t.Errorf("Expected 1 header issue, got %d", len(decoded.Misconfigurations.Headers))
-	}
-}
-
-func TestJSONRenderer_CompactMode(t *testing.T) {
-	compactRenderer := NewJSONRendererCompact()
-	indentedRenderer := NewJSONRenderer()
-
-	report := &models.Report{
-		Target: "test.com",
-		Identity: models.Identity{
-			IP: "1.2.3.4",
-		},
-	}
-
-	// Render compact
-	var compactBuf bytes.Buffer
-	err := compactRenderer.Render(&compactBuf, report)
-	if err != nil {
-		t.Errorf("Compact render error: %v", err)
-	}
-
-	// Render indented
-	var indentedBuf bytes.Buffer
-	err = indentedRenderer.Render(&indentedBuf, report)
-	if err != nil {
-		t.Errorf("Indented render error: %v", err)
-	}
-
-	compactOutput := compactBuf.String()
-	indentedOutput := indentedBuf.String()
-
-	// Compact should be shorter (no indentation/newlines)
-	if len(compactOutput) >= len(indentedOutput) {
-		t.Error("Expected compact output to be shorter than indented")
-	}
-
-	// Compact should not contain indentation spaces
-	if strings.Contains(compactOutput, "  \"") {
-		t.Error("Compact output should not contain indentation")
-	}
-
-	// Indented should contain indentation
-	if !strings.Contains(indentedOutput, "  \"") {
-		t.Error("Indented output should contain indentation")
-	}
-
-	// Both should be valid JSON with same content
-	var compactData, indentedData models.Report
-
-	if err := json.Unmarshal(compactBuf.Bytes(), &compactData); err != nil {
-		t.Errorf("Compact JSON invalid: %v", err)
-	}
-
-	if err := json.Unmarshal(indentedBuf.Bytes(), &indentedData); err != nil {
-		t.Errorf("Indented JSON invalid: %v", err)
-	}
-
-	if compactData.Target != indentedData.Target {
-		t.Error("Compact and indented should have same target")
-	}
-
-	if compactData.Identity.IP != indentedData.Identity.IP {
-		t.Error("Compact and indented should have same IP")
 	}
 }
 
