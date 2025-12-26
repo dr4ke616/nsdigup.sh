@@ -12,10 +12,14 @@ import (
 	"nsdigup/internal/server"
 )
 
-func main() {
-	// Display version if requested
-	DisplayVersionIfFlagged()
+// Version information (set via ldflags during build)
+var (
+	Version   = "dev"
+	Commit    = "unknown"
+	BuildTime = "unknown"
+)
 
+func main() {
 	// Display the banner
 	banner.PrintAsciBanner()
 

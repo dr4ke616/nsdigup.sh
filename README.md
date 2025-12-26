@@ -30,11 +30,6 @@ Query a domain:
 curl http://localhost:8080/google.com | jq '.'
 ```
 
-Check version:
-```bash
-./bin/nsdigup.sh --version
-```
-
 ## Build & Development
 
 The project uses a Makefile for common development tasks:
@@ -70,11 +65,7 @@ make dev                # Run without building (go run)
 ```
 
 ### Version Management
-Version information is automatically injected during build from git:
-```bash
-make build
-./bin/nsdigup.sh --version  # Shows version, commit, and build time
-```
+Version information is automatically injected during build from git and displayed in the startup logs.
 
 To create a versioned release:
 ```bash
