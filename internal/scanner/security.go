@@ -68,11 +68,11 @@ func CheckEmailSecurity(ctx context.Context, domain string) (models.EmailSec, er
 // CheckSecurityHeaders performs an HTTP request to the domain and checks for
 // security-related HTTP headers (HSTS, CSP, X-Frame-Options, etc.).
 // Returns a list of security issues found.
-func CheckSecurityHeaders(ctx context.Context, domain string) ([]string, error) {
+func CheckSecurityHeaders(ctx context.Context, domain string, timeout time.Duration) ([]string, error) {
 	issues := []string{}
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) >= 3 {
 				return fmt.Errorf("too many redirects")

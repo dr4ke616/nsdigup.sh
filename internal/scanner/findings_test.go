@@ -7,7 +7,7 @@ import (
 )
 
 func TestFindingsScanner_ScanFindings(t *testing.T) {
-	scanner := NewFindingsScanner()
+	scanner := NewFindingsScanner(10 * time.Second)
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -158,7 +158,7 @@ func TestFindingsScanner_Headers(t *testing.T) {
 
 	for _, domain := range domains {
 		t.Run(domain, func(t *testing.T) {
-			headers, err := CheckSecurityHeaders(ctx, domain)
+			headers, err := CheckSecurityHeaders(ctx, domain, 5*time.Second)
 			if err != nil {
 				t.Logf("Could not check headers for %s: %v", domain, err)
 				return
@@ -192,7 +192,7 @@ func TestFindingsScanner_Headers(t *testing.T) {
 }
 
 func TestFindingsScanner_ContextTimeout(t *testing.T) {
-	scanner := NewFindingsScanner()
+	scanner := NewFindingsScanner(10 * time.Second)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	defer cancel()
 

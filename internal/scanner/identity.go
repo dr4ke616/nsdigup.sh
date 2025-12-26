@@ -8,10 +8,14 @@ import (
 	"checks/pkg/models"
 )
 
-type IdentityScanner struct{}
+type IdentityScanner struct {
+	timeout time.Duration
+}
 
-func NewIdentityScanner() *IdentityScanner {
-	return &IdentityScanner{}
+func NewIdentityScanner(timeout time.Duration) *IdentityScanner {
+	return &IdentityScanner{
+		timeout: timeout,
+	}
 }
 
 func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*models.Identity, error) {
@@ -67,7 +71,7 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 		whoisChan <- result
 	}()
 
-	timeout := time.NewTimer(10 * time.Second)
+	timeout := time.NewTimer(i.timeout)
 	defer timeout.Stop()
 
 	var ip string

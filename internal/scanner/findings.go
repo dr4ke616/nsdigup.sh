@@ -8,10 +8,14 @@ import (
 	"checks/pkg/models"
 )
 
-type FindingsScanner struct{}
+type FindingsScanner struct {
+	timeout time.Duration
+}
 
-func NewFindingsScanner() *FindingsScanner {
-	return &FindingsScanner{}
+func NewFindingsScanner(timeout time.Duration) *FindingsScanner {
+	return &FindingsScanner{
+		timeout: timeout,
+	}
 }
 
 func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*models.Findings, error) {
@@ -37,7 +41,7 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 	}()
 
 	go func() {
-		headers, err := CheckSecurityHeaders(ctx, domain)
+		headers, err := CheckSecurityHeaders(ctx, domain, m.timeout)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -47,11 +51,11 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 	}()
 
 	go func() {
-		result := CheckHTTPSRedirect(ctx, domain)
+		result := CheckHTTPSRedirect(ctx, domain, m.timeout)
 		redirectChan <- result
 	}()
 
-	timeout := time.NewTimer(10 * time.Second)
+	timeout := time.NewTimer(m.timeout)
 	defer timeout.Stop()
 
 	var redirectResult RedirectResult

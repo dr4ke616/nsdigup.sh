@@ -8,7 +8,7 @@ import (
 )
 
 func TestCertificateScanner_ScanCertificates(t *testing.T) {
-	scanner := NewCertificateScanner()
+	scanner := NewCertificateScanner(10 * time.Second)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -92,7 +92,7 @@ func TestCertificateScanner_ScanCertificates(t *testing.T) {
 }
 
 func TestCertificateScanner_WildcardDetection(t *testing.T) {
-	scanner := NewCertificateScanner()
+	scanner := NewCertificateScanner(10 * time.Second)
 	ctx := context.Background()
 
 	knownWildcardDomains := []string{}
@@ -111,7 +111,7 @@ func TestCertificateScanner_WildcardDetection(t *testing.T) {
 }
 
 func TestCertificateScanner_CertificateExpiry(t *testing.T) {
-	scanner := NewCertificateScanner()
+	scanner := NewCertificateScanner(10 * time.Second)
 	ctx := context.Background()
 
 	certData, err := scanner.ScanCertificates(ctx, "google.com")

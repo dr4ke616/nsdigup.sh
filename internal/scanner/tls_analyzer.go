@@ -45,7 +45,7 @@ var weakCipherPatterns = []string{
 }
 
 // AnalyzeTLS performs comprehensive TLS protocol and cipher suite analysis
-func AnalyzeTLS(ctx context.Context, domain string) TLSAnalysisResult {
+func AnalyzeTLS(ctx context.Context, domain string, timeout time.Duration) TLSAnalysisResult {
 	result := TLSAnalysisResult{
 		TLSVersions:      []string{},
 		WeakTLSVersions:  []string{},
@@ -80,7 +80,7 @@ func AnalyzeTLS(ctx context.Context, domain string) TLSAnalysisResult {
 		}
 
 		dialer := &net.Dialer{
-			Timeout: 3 * time.Second,
+			Timeout: timeout,
 		}
 
 		conn, err := tls.DialWithDialer(dialer, "tcp", target, config)
@@ -121,7 +121,7 @@ func AnalyzeTLS(ctx context.Context, domain string) TLSAnalysisResult {
 	// Enumerate cipher suites more thoroughly using TLS 1.2
 	// (TLS 1.3 has a fixed set of cipher suites)
 	if supportedVersions[tls.VersionTLS12] {
-		detectedCiphers := probeCipherSuites(target)
+		detectedCiphers := probeCipherSuites(target, timeout)
 		for _, cipher := range detectedCiphers {
 			if _, exists := cipherSuiteNames[cipher]; !exists {
 				allCipherSuites = append(allCipherSuites, cipher)
@@ -144,7 +144,7 @@ func AnalyzeTLS(ctx context.Context, domain string) TLSAnalysisResult {
 }
 
 // probeCipherSuites attempts to detect supported cipher suites
-func probeCipherSuites(target string) []uint16 {
+func probeCipherSuites(target string, timeout time.Duration) []uint16 {
 	var detected []uint16
 
 	// Test with default cipher suites first
@@ -155,7 +155,7 @@ func probeCipherSuites(target string) []uint16 {
 	}
 
 	dialer := &net.Dialer{
-		Timeout: 2 * time.Second,
+		Timeout: timeout,
 	}
 
 	conn, err := tls.DialWithDialer(dialer, "tcp", target, config)

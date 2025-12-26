@@ -19,7 +19,7 @@ type RedirectResult struct {
 }
 
 // CheckHTTPSRedirect tests if HTTP properly redirects to HTTPS
-func CheckHTTPSRedirect(ctx context.Context, domain string) RedirectResult {
+func CheckHTTPSRedirect(ctx context.Context, domain string, timeout time.Duration) RedirectResult {
 	result := RedirectResult{
 		Enabled: false,
 	}
@@ -32,7 +32,7 @@ func CheckHTTPSRedirect(ctx context.Context, domain string) RedirectResult {
 	// Create HTTP client that doesn't follow redirects automatically
 	// We want to inspect each redirect manually
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: timeout,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			// Don't follow redirects, we'll do it manually
 			return http.ErrUseLastResponse

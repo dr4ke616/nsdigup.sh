@@ -8,7 +8,7 @@ import (
 )
 
 func TestIdentityScanner_ScanIdentity(t *testing.T) {
-	scanner := NewIdentityScanner()
+	scanner := NewIdentityScanner(10 * time.Second)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -77,7 +77,7 @@ func TestIdentityScanner_ScanIdentity(t *testing.T) {
 }
 
 func TestIdentityScanner_ContextCancellation(t *testing.T) {
-	scanner := NewIdentityScanner()
+	scanner := NewIdentityScanner(10 * time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 

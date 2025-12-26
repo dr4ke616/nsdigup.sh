@@ -8,10 +8,14 @@ import (
 	"checks/pkg/models"
 )
 
-type CertificateScanner struct{}
+type CertificateScanner struct {
+	timeout time.Duration
+}
 
-func NewCertificateScanner() *CertificateScanner {
-	return &CertificateScanner{}
+func NewCertificateScanner(timeout time.Duration) *CertificateScanner {
+	return &CertificateScanner{
+		timeout: timeout,
+	}
 }
 
 func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string) (*models.Certificates, error) {
@@ -24,7 +28,7 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 
 	// Certificate check
 	go func() {
-		certDetails, err := GetCertDetails(domain)
+		certDetails, err := GetCertDetails(domain, c.timeout)
 		if err != nil {
 			errChan <- err
 			return
@@ -34,11 +38,11 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 
 	// TLS analysis
 	go func() {
-		result := AnalyzeTLS(ctx, domain)
+		result := AnalyzeTLS(ctx, domain, c.timeout)
 		tlsChan <- result
 	}()
 
-	timeout := time.NewTimer(10 * time.Second)
+	timeout := time.NewTimer(c.timeout)
 	defer timeout.Stop()
 
 	var certDetails CertInfo

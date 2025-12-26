@@ -23,9 +23,9 @@ type CertInfo struct {
 // GetCertDetails retrieves and analyzes the TLS certificate for the given domain.
 // It connects to the domain on port 443 and extracts certificate information including
 // issuer, common name, expiration, wildcard status, and overall status.
-func GetCertDetails(domain string) (CertInfo, error) {
+func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 	dialer := &net.Dialer{
-		Timeout: 5 * time.Second,
+		Timeout: timeout,
 	}
 
 	conn, err := tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:443", domain), &tls.Config{

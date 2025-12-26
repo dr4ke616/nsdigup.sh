@@ -21,10 +21,13 @@ type Orchestrator struct {
 }
 
 func NewOrchestrator() *Orchestrator {
+	// Default timeout for each scanner
+	defaultTimeout := 10 * time.Second
+
 	return &Orchestrator{
-		identity:    NewIdentityScanner(),
-		certificate: NewCertificateScanner(),
-		findings:    NewFindingsScanner(),
+		identity:    NewIdentityScanner(defaultTimeout),
+		certificate: NewCertificateScanner(defaultTimeout),
+		findings:    NewFindingsScanner(defaultTimeout),
 	}
 }
 
