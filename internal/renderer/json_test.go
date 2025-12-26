@@ -21,12 +21,10 @@ func TestJSONRenderer_Render(t *testing.T) {
 			Registrar:   "Example Registrar",
 		},
 		Certificates: models.Certificates{
-			Current: models.CertDetails{
-				Issuer:     "Let's Encrypt",
-				CommonName: "example.com",
-				Status:     "Active",
-				IsWildcard: false,
-			},
+			Issuer:     "Let's Encrypt",
+			CommonName: "example.com",
+			Status:     "Active",
+			IsWildcard: false,
 		},
 		Misconfigurations: models.Misconfigurations{
 			EmailSec: models.EmailSec{
@@ -63,8 +61,8 @@ func TestJSONRenderer_Render(t *testing.T) {
 		t.Errorf("Expected 2 nameservers, got %d", len(decoded.Identity.Nameservers))
 	}
 
-	if decoded.Certificates.Current.Issuer != "Let's Encrypt" {
-		t.Errorf("Expected issuer 'Let's Encrypt', got '%s'", decoded.Certificates.Current.Issuer)
+	if decoded.Certificates.Issuer != "Let's Encrypt" {
+		t.Errorf("Expected issuer 'Let's Encrypt', got '%s'", decoded.Certificates.Issuer)
 	}
 
 	if decoded.Misconfigurations.EmailSec.DMARC != "quarantine" {
@@ -80,13 +78,10 @@ func TestJSONRenderer_EmptyReport(t *testing.T) {
 	renderer := NewJSONRenderer()
 
 	report := &models.Report{
-		Target:    "empty.com",
-		Timestamp: time.Now(),
-		Identity:  models.Identity{},
-		Certificates: models.Certificates{
-			Current: models.CertDetails{},
-			History: []models.CertDetails{},
-		},
+		Target:       "empty.com",
+		Timestamp:    time.Now(),
+		Identity:     models.Identity{},
+		Certificates: models.Certificates{},
 		Misconfigurations: models.Misconfigurations{
 			DNSGlue: []string{},
 			Headers: []string{},
@@ -119,7 +114,7 @@ func TestJSONRenderer_EmptyReport(t *testing.T) {
 		t.Error("Empty nameservers should be empty slice")
 	}
 
-	if decoded.Certificates.Current.CommonName != "" {
+	if decoded.Certificates.CommonName != "" {
 		t.Error("Empty common name should remain empty")
 	}
 }
@@ -153,20 +148,7 @@ func TestJSONRenderer_ComplexStructures(t *testing.T) {
 		Identity: models.Identity{
 			Nameservers: []string{"ns1.complex.com", "ns2.complex.com", "ns3.complex.com"},
 		},
-		Certificates: models.Certificates{
-			History: []models.CertDetails{
-				{
-					Issuer:     "Old CA",
-					CommonName: "old.complex.com",
-					Status:     "Expired",
-				},
-				{
-					Issuer:     "Previous CA",
-					CommonName: "*.complex.com",
-					IsWildcard: true,
-				},
-			},
-		},
+		Certificates: models.Certificates{},
 		Misconfigurations: models.Misconfigurations{
 			DNSGlue: []string{"dangling CNAME", "orphaned A record"},
 			Headers: []string{
@@ -194,21 +176,12 @@ func TestJSONRenderer_ComplexStructures(t *testing.T) {
 		t.Errorf("Expected 3 nameservers, got %d", len(decoded.Identity.Nameservers))
 	}
 
-	if len(decoded.Certificates.History) != 2 {
-		t.Errorf("Expected 2 historical certificates, got %d", len(decoded.Certificates.History))
-	}
-
 	if len(decoded.Misconfigurations.Headers) != 3 {
 		t.Errorf("Expected 3 header issues, got %d", len(decoded.Misconfigurations.Headers))
 	}
 
 	if len(decoded.Misconfigurations.DNSGlue) != 2 {
 		t.Errorf("Expected 2 DNS glue issues, got %d", len(decoded.Misconfigurations.DNSGlue))
-	}
-
-	// Verify nested boolean values
-	if !decoded.Certificates.History[1].IsWildcard {
-		t.Error("Expected second historical cert to be wildcard")
 	}
 }
 

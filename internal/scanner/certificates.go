@@ -15,12 +15,10 @@ func NewCertificateScanner() *CertificateScanner {
 }
 
 func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string) (*models.Certificates, error) {
-	certData := &models.Certificates{
-		History: []models.CertDetails{},
-	}
+	certData := &models.Certificates{}
 
 	// Channel for parallel checks
-	certChan := make(chan models.CertDetails, 1)
+	certChan := make(chan CertInfo, 1)
 	tlsChan := make(chan TLSAnalysisResult, 1)
 	errChan := make(chan error, 2)
 
@@ -43,7 +41,7 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 	timeout := time.NewTimer(10 * time.Second)
 	defer timeout.Stop()
 
-	var certDetails models.CertDetails
+	var certDetails CertInfo
 	var tlsResult TLSAnalysisResult
 	errors := []error{}
 
@@ -64,7 +62,11 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 	}
 
 	// Set certificate details
-	certData.Current = certDetails
+	certData.Issuer = certDetails.Issuer
+	certData.CommonName = certDetails.CommonName
+	certData.NotAfter = certDetails.NotAfter
+	certData.Status = certDetails.Status
+	certData.IsWildcard = certDetails.IsWildcard
 
 	// Set TLS analysis results
 	certData.TLSVersions = tlsResult.TLSVersions

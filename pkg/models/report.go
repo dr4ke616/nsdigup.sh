@@ -29,22 +29,17 @@ type Identity struct {
 }
 
 type Certificates struct {
-	Current CertDetails   `json:"current"`
-	History []CertDetails `json:"history"`
+	Issuer     string    `json:"issuer"`
+	CommonName string    `json:"common_name"`
+	NotAfter   time.Time `json:"expires_at"`
+	Status     string    `json:"status"`
+	IsWildcard bool      `json:"is_wildcard"`
 
 	// TLS protocol and cipher analysis
 	TLSVersions      []string `json:"tls_versions,omitempty"`
 	WeakTLSVersions  []string `json:"weak_tls_versions,omitempty"`
 	CipherSuites     []string `json:"cipher_suites,omitempty"`
 	WeakCipherSuites []string `json:"weak_cipher_suites,omitempty"`
-}
-
-type CertDetails struct {
-	Issuer     string    `json:"issuer"`
-	CommonName string    `json:"common_name"`
-	NotAfter   time.Time `json:"expires_at"`
-	Status     string    `json:"status"`
-	IsWildcard bool      `json:"is_wildcard"`
 }
 
 type Misconfigurations struct {

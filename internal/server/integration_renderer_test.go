@@ -58,12 +58,10 @@ func TestHandler_ANSIFormat(t *testing.T) {
 			Nameservers: []string{"ns1.test.com", "ns2.test.com"},
 		},
 		Certificates: models.Certificates{
-			Current: models.CertDetails{
-				CommonName: "ansi-test.com",
-				Issuer:     "Test CA",
-				Status:     "Active",
-				IsWildcard: false,
-			},
+			CommonName: "ansi-test.com",
+			Issuer:     "Test CA",
+			Status:     "Active",
+			IsWildcard: false,
 		},
 		Misconfigurations: models.Misconfigurations{
 			EmailSec: models.EmailSec{

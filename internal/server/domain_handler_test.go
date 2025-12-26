@@ -237,12 +237,10 @@ func TestHandler_JSONResponse(t *testing.T) {
 			Nameservers: []string{"ns1.example.com", "ns2.example.com"},
 		},
 		Certificates: models.Certificates{
-			Current: models.CertDetails{
-				Issuer:     "Test CA",
-				CommonName: "example.com",
-				Status:     "Active",
-				IsWildcard: false,
-			},
+			Issuer:     "Test CA",
+			CommonName: "example.com",
+			Status:     "Active",
+			IsWildcard: false,
 		},
 	}
 	mock := &mockScanner{report: mockReport}

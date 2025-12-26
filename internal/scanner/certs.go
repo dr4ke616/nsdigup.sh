@@ -9,13 +9,21 @@ import (
 	"time"
 
 	"checks/internal/logger"
-	"checks/pkg/models"
 )
+
+// CertInfo contains the certificate details extracted from a TLS connection.
+type CertInfo struct {
+	Issuer     string
+	CommonName string
+	NotAfter   time.Time
+	Status     string
+	IsWildcard bool
+}
 
 // GetCertDetails retrieves and analyzes the TLS certificate for the given domain.
 // It connects to the domain on port 443 and extracts certificate information including
 // issuer, common name, expiration, wildcard status, and overall status.
-func GetCertDetails(domain string) (models.CertDetails, error) {
+func GetCertDetails(domain string) (CertInfo, error) {
 	dialer := &net.Dialer{
 		Timeout: 5 * time.Second,
 	}
@@ -24,13 +32,13 @@ func GetCertDetails(domain string) (models.CertDetails, error) {
 		ServerName: domain,
 	})
 	if err != nil {
-		return models.CertDetails{}, fmt.Errorf("TLS connection failed: %w", err)
+		return CertInfo{}, fmt.Errorf("TLS connection failed: %w", err)
 	}
 	defer conn.Close()
 
 	state := conn.ConnectionState()
 	if len(state.PeerCertificates) == 0 {
-		return models.CertDetails{}, fmt.Errorf("no certificates found")
+		return CertInfo{}, fmt.Errorf("no certificates found")
 	}
 
 	cert := state.PeerCertificates[0]
@@ -64,7 +72,7 @@ func GetCertDetails(domain string) (models.CertDetails, error) {
 		}
 	}
 
-	return models.CertDetails{
+	return CertInfo{
 		Issuer:     issuer,
 		CommonName: cert.Subject.CommonName,
 		NotAfter:   cert.NotAfter,

@@ -87,7 +87,7 @@ func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report,
 			log.Debug("certificate scan completed",
 				slog.String("domain", domain),
 				slog.Duration("duration", duration),
-				slog.String("issuer", certData.Current.Issuer))
+				slog.String("issuer", certData.Issuer))
 		}
 		if certData != nil {
 			report.Certificates = *certData
@@ -124,7 +124,7 @@ func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report,
 	wg.Wait()
 
 	// Check if complete failure (no results from any scanner)
-	if len(errors) > 0 && report.Identity.IP == "" && report.Certificates.Current.CommonName == "" {
+	if len(errors) > 0 && report.Identity.IP == "" && report.Certificates.CommonName == "" {
 		log.Error("complete scan failure",
 			slog.String("domain", domain),
 			slog.Int("error_count", len(errors)))

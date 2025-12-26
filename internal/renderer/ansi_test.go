@@ -23,13 +23,11 @@ func TestANSIRenderer_Render(t *testing.T) {
 			ExpiresDays: 45,
 		},
 		Certificates: models.Certificates{
-			Current: models.CertDetails{
-				Issuer:     "Let's Encrypt",
-				CommonName: "example.com",
-				NotAfter:   time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
-				Status:     "Active",
-				IsWildcard: false,
-			},
+			Issuer:     "Let's Encrypt",
+			CommonName: "example.com",
+			NotAfter:   time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
+			Status:     "Active",
+			IsWildcard: false,
 		},
 		Misconfigurations: models.Misconfigurations{
 			EmailSec: models.EmailSec{
@@ -153,11 +151,9 @@ func TestANSIRenderer_WildcardCertificate(t *testing.T) {
 		Target:    "wildcard.com",
 		Timestamp: time.Now(),
 		Certificates: models.Certificates{
-			Current: models.CertDetails{
-				CommonName: "*.wildcard.com",
-				IsWildcard: true,
-				Status:     "Active",
-			},
+			CommonName: "*.wildcard.com",
+			IsWildcard: true,
+			Status:     "Active",
 		},
 	}
 
@@ -188,11 +184,9 @@ func TestANSIRenderer_ExpiredCertificate(t *testing.T) {
 		Target:    "expired.com",
 		Timestamp: time.Now(),
 		Certificates: models.Certificates{
-			Current: models.CertDetails{
-				CommonName: "expired.com",
-				NotAfter:   yesterday,
-				Status:     "Expired",
-			},
+			CommonName: "expired.com",
+			NotAfter:   yesterday,
+			Status:     "Expired",
 		},
 	}
 

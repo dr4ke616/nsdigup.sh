@@ -108,24 +108,24 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 	fmt.Fprintf(w, "[ CERTIFICATES ]\n")
 
 	// Current certificate
-	if certs.Current.CommonName != "" {
+	if certs.CommonName != "" {
 		fmt.Fprintf(w, "  Current Certificate:\n")
-		fmt.Fprintf(w, "    Common Name: %s", certs.Current.CommonName)
+		fmt.Fprintf(w, "    Common Name: %s", certs.CommonName)
 
-		if certs.Current.IsWildcard {
+		if certs.IsWildcard {
 			fmt.Fprintf(w, " (wildcard)")
 		}
 		fmt.Fprintf(w, "\n")
 
-		if certs.Current.Issuer != "" {
-			fmt.Fprintf(w, "    Issuer: %s\n", certs.Current.Issuer)
+		if certs.Issuer != "" {
+			fmt.Fprintf(w, "    Issuer: %s\n", certs.Issuer)
 		}
 
-		fmt.Fprintf(w, "    Status: %s\n", certs.Current.Status)
+		fmt.Fprintf(w, "    Status: %s\n", certs.Status)
 
-		if !certs.Current.NotAfter.IsZero() {
-			expiry := certs.Current.NotAfter.Format("2006-01-02")
-			daysUntilExpiry := int(time.Until(certs.Current.NotAfter).Hours() / 24)
+		if !certs.NotAfter.IsZero() {
+			expiry := certs.NotAfter.Format("2006-01-02")
+			daysUntilExpiry := int(time.Until(certs.NotAfter).Hours() / 24)
 
 			fmt.Fprintf(w, "    Expires: %s (%d days)\n", expiry, daysUntilExpiry)
 		}
