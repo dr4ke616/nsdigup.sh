@@ -8,11 +8,9 @@ MAIN_PATH := ./cmd/$(APP_NAME)
 # Version information (injected at build time)
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 
 # Build flags for version injection
-# To use: add these vars to your main package:
-#   var (Version = "dev"; Commit = "unknown"; BuildTime = "unknown")
 LDFLAGS := -ldflags "\
 	-X main.Version=$(VERSION) \
 	-X main.Commit=$(COMMIT) \
@@ -84,12 +82,6 @@ vet:
 	@echo "Running go vet..."
 	$(GOVET) ./...
 
-## lint: Run linter (requires golangci-lint)
-lint:
-	@echo "Running linter..."
-	@which golangci-lint > /dev/null || (echo "golangci-lint not installed. Install: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest" && exit 1)
-	golangci-lint run ./...
-
 ## tidy: Tidy go.mod
 tidy:
 	@echo "Tidying go.mod..."
@@ -102,12 +94,6 @@ clean:
 	rm -f coverage.out coverage.html
 	rm -f $(APP_NAME)
 	@echo "Clean complete"
-
-## install: Install the binary to $GOPATH/bin
-install:
-	@echo "Installing $(APP_NAME)..."
-	$(GOCMD) install $(LDFLAGS) $(MAIN_PATH)
-	@echo "Installed to $(shell go env GOPATH)/bin/$(APP_NAME)"
 
 ## run: Build and run the application
 run: build
