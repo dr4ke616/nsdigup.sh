@@ -17,11 +17,26 @@ type Identity struct {
 	Owner       string   `json:"owner"`
 	ExpiresDays int      `json:"expires_days"`
 	Nameservers []string `json:"nameservers"`
+
+	// DNSSEC validation
+	DNSSECEnabled bool   `json:"dnssec_enabled,omitempty"`
+	DNSSECValid   bool   `json:"dnssec_valid,omitempty"`
+	DNSSECError   string `json:"dnssec_error,omitempty"`
+
+	// CAA records
+	CAARecords []string `json:"caa_records,omitempty"`
+	CAAMissing bool     `json:"caa_missing,omitempty"`
 }
 
 type Certificates struct {
 	Current CertDetails   `json:"current"`
 	History []CertDetails `json:"history"`
+
+	// TLS protocol and cipher analysis
+	TLSVersions      []string `json:"tls_versions,omitempty"`
+	WeakTLSVersions  []string `json:"weak_tls_versions,omitempty"`
+	CipherSuites     []string `json:"cipher_suites,omitempty"`
+	WeakCipherSuites []string `json:"weak_cipher_suites,omitempty"`
 }
 
 type CertDetails struct {
@@ -36,6 +51,9 @@ type Misconfigurations struct {
 	DNSGlue  []string `json:"dns_glue_issues"`
 	EmailSec EmailSec `json:"email_security"`
 	Headers  []string `json:"header_issues"`
+
+	// HTTPS redirect checking
+	HTTPSRedirect HTTPSRedirectCheck `json:"https_redirect,omitempty"`
 }
 
 type EmailSec struct {
@@ -46,4 +64,12 @@ type EmailSec struct {
 
 type HTTPDetails struct {
 	StatusCode int `json:"status_code"`
+}
+
+type HTTPSRedirectCheck struct {
+	Enabled      bool   `json:"enabled"`
+	StatusCode   int    `json:"status_code,omitempty"`
+	FinalURL     string `json:"final_url,omitempty"`
+	RedirectLoop bool   `json:"redirect_loop,omitempty"`
+	Error        string `json:"error,omitempty"`
 }

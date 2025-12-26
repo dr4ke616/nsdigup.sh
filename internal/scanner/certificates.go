@@ -24,60 +24,113 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 		History: []models.CertDetails{},
 	}
 
-	dialer := &net.Dialer{
-		Timeout: 5 * time.Second,
-	}
+	// Channel for parallel checks
+	certChan := make(chan models.CertDetails, 1)
+	tlsChan := make(chan TLSAnalysisResult, 1)
+	errChan := make(chan error, 2)
 
-	conn, err := tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:443", domain), &tls.Config{
-		ServerName: domain,
-	})
-	if err != nil {
-		return certData, fmt.Errorf("TLS connection failed: %w", err)
-	}
-	defer conn.Close()
+	// Certificate check
+	go func() {
+		dialer := &net.Dialer{
+			Timeout: 5 * time.Second,
+		}
 
-	state := conn.ConnectionState()
-	if len(state.PeerCertificates) == 0 {
-		return certData, fmt.Errorf("no certificates found")
-	}
+		conn, err := tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:443", domain), &tls.Config{
+			ServerName: domain,
+		})
+		if err != nil {
+			errChan <- fmt.Errorf("TLS connection failed: %w", err)
+			return
+		}
+		defer conn.Close()
 
-	cert := state.PeerCertificates[0]
+		state := conn.ConnectionState()
+		if len(state.PeerCertificates) == 0 {
+			errChan <- fmt.Errorf("no certificates found")
+			return
+		}
 
-	issuer := cert.Issuer.CommonName
-	if issuer == "" && cert.Issuer.Organization != nil && len(cert.Issuer.Organization) > 0 {
-		issuer = cert.Issuer.Organization[0]
-	}
+		cert := state.PeerCertificates[0]
 
-	status := "Active"
-	if time.Now().After(cert.NotAfter) {
-		status = "Expired"
-	} else if time.Now().Add(30 * 24 * time.Hour).After(cert.NotAfter) {
-		status = "Expiring Soon"
-		daysRemaining := int(time.Until(cert.NotAfter).Hours() / 24)
-		logger.Get().Debug("certificate expiring soon",
-			slog.String("domain", domain),
-			slog.String("common_name", cert.Subject.CommonName),
-			slog.Int("days_remaining", daysRemaining),
-			slog.Time("expires", cert.NotAfter))
-	}
+		issuer := cert.Issuer.CommonName
+		if issuer == "" && cert.Issuer.Organization != nil && len(cert.Issuer.Organization) > 0 {
+			issuer = cert.Issuer.Organization[0]
+		}
 
-	isWildcard := false
-	if strings.HasPrefix(cert.Subject.CommonName, "*.") {
-		isWildcard = true
-	}
-	for _, san := range cert.DNSNames {
-		if strings.HasPrefix(san, "*.") {
+		status := "Active"
+		if time.Now().After(cert.NotAfter) {
+			status = "Expired"
+		} else if time.Now().Add(30 * 24 * time.Hour).After(cert.NotAfter) {
+			status = "Expiring Soon"
+			daysRemaining := int(time.Until(cert.NotAfter).Hours() / 24)
+			logger.Get().Debug("certificate expiring soon",
+				slog.String("domain", domain),
+				slog.String("common_name", cert.Subject.CommonName),
+				slog.Int("days_remaining", daysRemaining),
+				slog.Time("expires", cert.NotAfter))
+		}
+
+		isWildcard := false
+		if strings.HasPrefix(cert.Subject.CommonName, "*.") {
 			isWildcard = true
-			break
+		}
+		for _, san := range cert.DNSNames {
+			if strings.HasPrefix(san, "*.") {
+				isWildcard = true
+				break
+			}
+		}
+
+		certChan <- models.CertDetails{
+			Issuer:     issuer,
+			CommonName: cert.Subject.CommonName,
+			NotAfter:   cert.NotAfter,
+			Status:     status,
+			IsWildcard: isWildcard,
+		}
+	}()
+
+	// TLS analysis
+	go func() {
+		result := AnalyzeTLS(ctx, domain)
+		tlsChan <- result
+	}()
+
+	timeout := time.NewTimer(10 * time.Second)
+	defer timeout.Stop()
+
+	var certDetails models.CertDetails
+	var tlsResult TLSAnalysisResult
+	errors := []error{}
+
+	// Wait for both checks to complete
+	for i := 0; i < 2; i++ {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-timeout.C:
+			return nil, fmt.Errorf("certificate scan timeout")
+		case cert := <-certChan:
+			certDetails = cert
+		case tls := <-tlsChan:
+			tlsResult = tls
+		case err := <-errChan:
+			errors = append(errors, err)
 		}
 	}
 
-	certData.Current = models.CertDetails{
-		Issuer:     issuer,
-		CommonName: cert.Subject.CommonName,
-		NotAfter:   cert.NotAfter,
-		Status:     status,
-		IsWildcard: isWildcard,
+	// Set certificate details
+	certData.Current = certDetails
+
+	// Set TLS analysis results
+	certData.TLSVersions = tlsResult.TLSVersions
+	certData.WeakTLSVersions = tlsResult.WeakTLSVersions
+	certData.CipherSuites = tlsResult.CipherSuites
+	certData.WeakCipherSuites = tlsResult.WeakCipherSuites
+
+	// Return error if certificate fetch failed
+	if len(errors) > 0 && certDetails.Issuer == "" {
+		return certData, fmt.Errorf("certificate retrieval failed: %v", errors)
 	}
 
 	return certData, nil

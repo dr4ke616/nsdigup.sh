@@ -26,9 +26,10 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 		EmailSec: models.EmailSec{},
 	}
 
-	errChan := make(chan error, 2)
+	errChan := make(chan error, 3)
 	emailDone := make(chan bool, 1)
 	headersDone := make(chan bool, 1)
+	redirectChan := make(chan RedirectResult, 1)
 
 	go func() {
 		emailSec, err := m.checkEmailSecurity(ctx, domain)
@@ -50,10 +51,17 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 		headersDone <- true
 	}()
 
+	go func() {
+		result := CheckHTTPSRedirect(ctx, domain)
+		redirectChan <- result
+	}()
+
 	timeout := time.NewTimer(10 * time.Second)
 	defer timeout.Stop()
 
-	for i := 0; i < 2; i++ {
+	var redirectResult RedirectResult
+
+	for i := 0; i < 3; i++ {
 		select {
 		case <-ctx.Done():
 			return misconfigs, ctx.Err()
@@ -61,8 +69,19 @@ func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, dom
 			return misconfigs, fmt.Errorf("misconfiguration scan timeout")
 		case <-emailDone:
 		case <-headersDone:
+		case redirect := <-redirectChan:
+			redirectResult = redirect
 		case <-errChan:
 		}
+	}
+
+	// Set HTTPS redirect results
+	misconfigs.HTTPSRedirect = models.HTTPSRedirectCheck{
+		Enabled:      redirectResult.Enabled,
+		StatusCode:   redirectResult.StatusCode,
+		FinalURL:     redirectResult.FinalURL,
+		RedirectLoop: redirectResult.RedirectLoop,
+		Error:        redirectResult.Error,
 	}
 
 	return misconfigs, nil
