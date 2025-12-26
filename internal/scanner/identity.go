@@ -3,8 +3,6 @@ package scanner
 import (
 	"context"
 	"fmt"
-	"net"
-	"strings"
 	"time"
 
 	"checks/pkg/models"
@@ -23,11 +21,9 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 		ExpiresDays: 0,
 	}
 
-	resolver := &net.Resolver{}
-
 	// Channels for parallel checks
-	ipsChan := make(chan []net.IP, 1)
-	nsChan := make(chan []*net.NS, 1)
+	ipsChan := make(chan string, 1)
+	nsChan := make(chan []string, 1)
 	dnssecChan := make(chan DNSSECResult, 1)
 	caaChan := make(chan CAAResult, 1)
 	whoisChan := make(chan WHOISResult, 1)
@@ -35,26 +31,22 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 
 	// IP lookup
 	go func() {
-		ips, err := resolver.LookupIPAddr(ctx, domain)
+		ip, err := GetIPAddress(ctx, domain)
 		if err != nil {
-			errChan <- fmt.Errorf("IP lookup failed: %w", err)
+			errChan <- err
 			return
 		}
-		var ipList []net.IP
-		for _, ip := range ips {
-			ipList = append(ipList, ip.IP)
-		}
-		ipsChan <- ipList
+		ipsChan <- ip
 	}()
 
 	// Nameserver lookup
 	go func() {
-		ns, err := resolver.LookupNS(ctx, domain)
+		nameservers, err := GetNameservers(ctx, domain)
 		if err != nil {
-			errChan <- fmt.Errorf("NS lookup failed: %w", err)
+			errChan <- err
 			return
 		}
-		nsChan <- ns
+		nsChan <- nameservers
 	}()
 
 	// DNSSEC validation
@@ -78,8 +70,8 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 	timeout := time.NewTimer(10 * time.Second)
 	defer timeout.Stop()
 
-	var ips []net.IP
-	var ns []*net.NS
+	var ip string
+	var nameservers []string
 	var dnssecResult DNSSECResult
 	var caaResult CAAResult
 	var whoisResult WHOISResult
@@ -92,10 +84,10 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 			return nil, ctx.Err()
 		case <-timeout.C:
 			return nil, fmt.Errorf("identity scan timeout")
-		case ipList := <-ipsChan:
-			ips = ipList
-		case nsList := <-nsChan:
-			ns = nsList
+		case ipAddr := <-ipsChan:
+			ip = ipAddr
+		case ns := <-nsChan:
+			nameservers = ns
 		case dnssec := <-dnssecChan:
 			dnssecResult = dnssec
 		case caa := <-caaChan:
@@ -107,27 +99,9 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 		}
 	}
 
-	// Process IP addresses
-	if len(ips) > 0 {
-		for _, ip := range ips {
-			if ip.To4() != nil {
-				identity.IP = ip.String()
-				break
-			}
-		}
-		if identity.IP == "" && len(ips) > 0 {
-			identity.IP = ips[0].String()
-		}
-	}
-
-	// Process nameservers
-	if len(ns) > 0 {
-		identity.Nameservers = make([]string, 0, len(ns))
-		for _, n := range ns {
-			nsHost := strings.TrimSuffix(n.Host, ".")
-			identity.Nameservers = append(identity.Nameservers, nsHost)
-		}
-	}
+	// Set IP and nameservers
+	identity.IP = ip
+	identity.Nameservers = nameservers
 
 	// Process DNSSEC results
 	identity.DNSSECEnabled = dnssecResult.Enabled

@@ -73,7 +73,6 @@ func TestMisconfigurationScanner_ScanMisconfigurations(t *testing.T) {
 }
 
 func TestMisconfigurationScanner_EmailSecurity(t *testing.T) {
-	scanner := NewMisconfigurationScanner()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -102,7 +101,7 @@ func TestMisconfigurationScanner_EmailSecurity(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.domain, func(t *testing.T) {
-			emailSec, err := scanner.checkEmailSecurity(ctx, tt.domain)
+			emailSec, err := CheckEmailSecurity(ctx, tt.domain)
 			if err != nil {
 				t.Errorf("Error checking email security: %v", err)
 				return
@@ -144,7 +143,6 @@ func TestMisconfigurationScanner_EmailSecurity(t *testing.T) {
 }
 
 func TestMisconfigurationScanner_Headers(t *testing.T) {
-	scanner := NewMisconfigurationScanner()
 	ctx := context.Background()
 
 	importantHeaders := []string{
@@ -160,7 +158,7 @@ func TestMisconfigurationScanner_Headers(t *testing.T) {
 
 	for _, domain := range domains {
 		t.Run(domain, func(t *testing.T) {
-			headers, err := scanner.checkHeaders(ctx, domain)
+			headers, err := CheckSecurityHeaders(ctx, domain)
 			if err != nil {
 				t.Logf("Could not check headers for %s: %v", domain, err)
 				return
