@@ -2,9 +2,6 @@
 
 ## Outstanding TODOs
 1. Decide on domain name. Update app name everywhere. (nsdigup.sh,)
-2. Finalize home page -- usage, description, docs
-3. Fix cache expiry ttl issue
-4. Dockerfile
 
 A `curl`-first domain health utility that aggregates Domain Identity, Certificate Health, and Configuration gaps into a high-density ANSI report.
 

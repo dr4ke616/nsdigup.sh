@@ -19,7 +19,7 @@ func (e *cacheEntry) isExpired() bool {
 	if e.ttl == 0 {
 		return false
 	}
-	return time.Since(e.timestamp) > e.ttl
+	return time.Since(e.timestamp) >= e.ttl
 }
 
 type MemoryStore struct {
@@ -122,7 +122,7 @@ func (m *MemoryStore) cleanupExpired() {
 		now := time.Now()
 		removed := 0
 		for domain, entry := range m.entries {
-			if entry.ttl > 0 && now.Sub(entry.timestamp) > entry.ttl {
+			if entry.ttl > 0 && now.Sub(entry.timestamp) >= entry.ttl {
 				delete(m.entries, domain)
 				removed++
 			}
