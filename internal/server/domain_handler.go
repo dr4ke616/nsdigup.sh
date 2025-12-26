@@ -62,18 +62,18 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 	h.writeResponse(w, report, format)
 }
 
-func (h *Handler) writeResponse(w http.ResponseWriter, report interface{}, format OutputFormat) {
+func (h *Handler) writeResponse(w http.ResponseWriter, report *models.Report, format OutputFormat) {
 	switch format {
 	case OutputFormatANSI:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		if err := h.ansiRenderer.Render(w, report.(*models.Report)); err != nil {
+		if err := h.ansiRenderer.Render(w, report); err != nil {
 			h.logger.Error("failed to render ANSI response",
 				slog.String("error", err.Error()))
 			http.Error(w, "Failed to render ANSI response: "+err.Error(), http.StatusInternalServerError)
 		}
 	case OutputFormatJSON:
 		w.Header().Set("Content-Type", "application/json")
-		if err := h.jsonRenderer.Render(w, report.(*models.Report)); err != nil {
+		if err := h.jsonRenderer.Render(w, report); err != nil {
 			h.logger.Error("failed to render JSON response",
 				slog.String("error", err.Error()))
 			http.Error(w, "Failed to render JSON response: "+err.Error(), http.StatusInternalServerError)

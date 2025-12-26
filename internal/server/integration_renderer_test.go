@@ -128,11 +128,6 @@ func TestHandler_ANSIFormat(t *testing.T) {
 	if !strings.Contains(body, "Test CA") {
 		t.Error("Expected certificate issuer")
 	}
-
-	// Check for ANSI color codes
-	if !strings.Contains(body, "\033[") {
-		t.Error("Expected ANSI color codes")
-	}
 }
 
 func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {

@@ -3,7 +3,6 @@ package renderer
 import (
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	"checks/pkg/models"
@@ -19,30 +18,15 @@ func NewANSIRenderer() *ANSIRenderer {
 	return &ANSIRenderer{}
 }
 
-// ANSI color codes
-const (
-	Reset     = "\033[0m"
-	Bold      = "\033[1m"
-	Dim       = "\033[2m"
-	Red       = "\033[31m"
-	Green     = "\033[32m"
-	Yellow    = "\033[33m"
-	Blue      = "\033[34m"
-	Magenta   = "\033[35m"
-	Cyan      = "\033[36m"
-	White     = "\033[37m"
-	BrightRed = "\033[91m"
-)
-
 func (a *ANSIRenderer) Render(w io.Writer, report *models.Report) error {
 	if report == nil {
 		return fmt.Errorf("report cannot be nil")
 	}
 
 	// Header
-	fmt.Fprintf(w, "%s%s═══ checks.sh ═══%s\n", Bold, Cyan, Reset)
-	fmt.Fprintf(w, "%sTarget:%s %s%s%s\n", Bold, Reset, Green, report.Target, Reset)
-	fmt.Fprintf(w, "%sScanned:%s %s\n\n", Dim, Reset, report.Timestamp.Format("2006-01-02 15:04:05 UTC"))
+	fmt.Fprintf(w, "═══ checks.sh ═══\n")
+	fmt.Fprintf(w, "Target: %s\n", report.Target)
+	fmt.Fprintf(w, "Scanned: %s\n\n", report.Timestamp.Format("2006-01-02 15:04:05 UTC"))
 
 	// Identity section
 	if err := a.renderIdentity(w, &report.Identity); err != nil {
@@ -63,14 +47,14 @@ func (a *ANSIRenderer) Render(w io.Writer, report *models.Report) error {
 }
 
 func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) error {
-	fmt.Fprintf(w, "%s%s[ IDENTITY ]%s\n", Bold, Blue, Reset)
+	fmt.Fprintf(w, "[ IDENTITY ]\n")
 
 	if identity.IP != "" {
-		fmt.Fprintf(w, "  %sIP Address:%s %s\n", Bold, Reset, identity.IP)
+		fmt.Fprintf(w, "  IP Address: %s\n", identity.IP)
 	}
 
 	if len(identity.Nameservers) > 0 {
-		fmt.Fprintf(w, "  %sNameservers:%s\n", Bold, Reset)
+		fmt.Fprintf(w, "  Nameservers:\n")
 		for _, ns := range identity.Nameservers {
 			fmt.Fprintf(w, "    • %s\n", ns)
 		}
@@ -78,21 +62,15 @@ func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) er
 
 	// Only show WHOIS fields if they have values (Phase 2+ features)
 	if identity.Registrar != "" {
-		fmt.Fprintf(w, "  %sRegistrar:%s %s\n", Bold, Reset, identity.Registrar)
+		fmt.Fprintf(w, "  Registrar: %s\n", identity.Registrar)
 	}
 
 	if identity.Owner != "" {
-		fmt.Fprintf(w, "  %sOwner:%s %s\n", Bold, Reset, identity.Owner)
+		fmt.Fprintf(w, "  Owner: %s\n", identity.Owner)
 	}
 
 	if identity.ExpiresDays > 0 {
-		color := Green
-		if identity.ExpiresDays < 30 {
-			color = Red
-		} else if identity.ExpiresDays < 90 {
-			color = Yellow
-		}
-		fmt.Fprintf(w, "  %sExpires:%s %s%d days%s\n", Bold, Reset, color, identity.ExpiresDays, Reset)
+		fmt.Fprintf(w, "  Expires: %d days\n", identity.ExpiresDays)
 	}
 
 	fmt.Fprintf(w, "\n")
@@ -100,46 +78,32 @@ func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) er
 }
 
 func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.CertData) error {
-	fmt.Fprintf(w, "%s%s[ CERTIFICATES ]%s\n", Bold, Magenta, Reset)
+	fmt.Fprintf(w, "[ CERTIFICATES ]\n")
 
 	// Current certificate
 	if certs.Current.CommonName != "" {
-		fmt.Fprintf(w, "  %sCurrent Certificate:%s\n", Bold, Reset)
-		fmt.Fprintf(w, "    %sCommon Name:%s %s", Bold, Reset, certs.Current.CommonName)
+		fmt.Fprintf(w, "  Current Certificate:\n")
+		fmt.Fprintf(w, "    Common Name: %s", certs.Current.CommonName)
 
 		if certs.Current.IsWildcard {
-			fmt.Fprintf(w, " %s(wildcard)%s", Yellow, Reset)
+			fmt.Fprintf(w, " (wildcard)")
 		}
 		fmt.Fprintf(w, "\n")
 
 		if certs.Current.Issuer != "" {
-			fmt.Fprintf(w, "    %sIssuer:%s %s\n", Bold, Reset, certs.Current.Issuer)
+			fmt.Fprintf(w, "    Issuer: %s\n", certs.Current.Issuer)
 		}
 
-		// Status with color coding
-		statusColor := Green
-		if certs.Current.Status == "Expired" {
-			statusColor = Red
-		} else if certs.Current.Status == "Expiring Soon" {
-			statusColor = Yellow
-		}
-		fmt.Fprintf(w, "    %sStatus:%s %s%s%s\n", Bold, Reset, statusColor, certs.Current.Status, Reset)
+		fmt.Fprintf(w, "    Status: %s\n", certs.Current.Status)
 
 		if !certs.Current.NotAfter.IsZero() {
 			expiry := certs.Current.NotAfter.Format("2006-01-02")
 			daysUntilExpiry := int(time.Until(certs.Current.NotAfter).Hours() / 24)
 
-			expiryColor := Green
-			if daysUntilExpiry < 0 {
-				expiryColor = Red
-			} else if daysUntilExpiry < 30 {
-				expiryColor = Yellow
-			}
-
-			fmt.Fprintf(w, "    %sExpires:%s %s%s (%d days)%s\n", Bold, Reset, expiryColor, expiry, daysUntilExpiry, Reset)
+			fmt.Fprintf(w, "    Expires: %s (%d days)\n", expiry, daysUntilExpiry)
 		}
 	} else {
-		fmt.Fprintf(w, "  %sNo certificate information available%s\n", Dim, Reset)
+		fmt.Fprintf(w, "  No certificate information available\n")
 	}
 
 	fmt.Fprintf(w, "\n")
@@ -147,34 +111,24 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.CertData) e
 }
 
 func (a *ANSIRenderer) renderMisconfigurations(w io.Writer, misconfigs *models.Misconfigurations) error {
-	fmt.Fprintf(w, "%s%s[ MISCONFIGURATIONS ]%s\n", Bold, Yellow, Reset)
+	fmt.Fprintf(w, "[ MISCONFIGURATIONS ]\n")
 
 	hasIssues := false
 
 	// Email security
 	if misconfigs.EmailSec.SPF != "" || misconfigs.EmailSec.DMARC != "" {
-		fmt.Fprintf(w, "  %sEmail Security:%s\n", Bold, Reset)
+		fmt.Fprintf(w, "  Email Security:\n")
 
 		if misconfigs.EmailSec.SPF != "" {
-			spfColor := Green
-			if strings.Contains(misconfigs.EmailSec.SPF, "+all") || strings.Contains(misconfigs.EmailSec.SPF, "?all") {
-				spfColor = Red
-			}
-			fmt.Fprintf(w, "    %sSPF:%s %s%s%s\n", Bold, Reset, spfColor, misconfigs.EmailSec.SPF, Reset)
+			fmt.Fprintf(w, "    SPF: %s\n", misconfigs.EmailSec.SPF)
 		}
 
 		if misconfigs.EmailSec.DMARC != "" {
-			dmarcColor := Green
-			if misconfigs.EmailSec.DMARC == "none" {
-				dmarcColor = Red
-			} else if misconfigs.EmailSec.DMARC == "quarantine" {
-				dmarcColor = Yellow
-			}
-			fmt.Fprintf(w, "    %sDMARC Policy:%s %s%s%s\n", Bold, Reset, dmarcColor, misconfigs.EmailSec.DMARC, Reset)
+			fmt.Fprintf(w, "    DMARC Policy: %s\n", misconfigs.EmailSec.DMARC)
 		}
 
 		if misconfigs.EmailSec.IsWeak {
-			fmt.Fprintf(w, "    %s⚠ Weak email security configuration%s\n", Red, Reset)
+			fmt.Fprintf(w, "    ⚠ Weak email security configuration\n")
 		}
 
 		hasIssues = true
@@ -185,9 +139,9 @@ func (a *ANSIRenderer) renderMisconfigurations(w io.Writer, misconfigs *models.M
 		if hasIssues {
 			fmt.Fprintf(w, "\n")
 		}
-		fmt.Fprintf(w, "  %sSecurity Headers:%s\n", Bold, Reset)
+		fmt.Fprintf(w, "  Security Headers:\n")
 		for _, issue := range misconfigs.Headers {
-			fmt.Fprintf(w, "    %s⚠%s %s\n", Red, Reset, issue)
+			fmt.Fprintf(w, "    ⚠ %s\n", issue)
 		}
 		hasIssues = true
 	}
@@ -197,15 +151,15 @@ func (a *ANSIRenderer) renderMisconfigurations(w io.Writer, misconfigs *models.M
 		if hasIssues {
 			fmt.Fprintf(w, "\n")
 		}
-		fmt.Fprintf(w, "  %sDNS Issues:%s\n", Bold, Reset)
+		fmt.Fprintf(w, "  DNS Issues:\n")
 		for _, issue := range misconfigs.DNSGlue {
-			fmt.Fprintf(w, "    %s⚠%s %s\n", Red, Reset, issue)
+			fmt.Fprintf(w, "    ⚠ %s\n", issue)
 		}
 		hasIssues = true
 	}
 
 	if !hasIssues {
-		fmt.Fprintf(w, "  %s✓ No misconfigurations detected%s\n", Green, Reset)
+		fmt.Fprintf(w, "  ✓ No misconfigurations detected\n")
 	}
 
 	fmt.Fprintf(w, "\n")

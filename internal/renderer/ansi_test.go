@@ -266,37 +266,3 @@ func TestANSIRenderer_NilReport(t *testing.T) {
 		t.Errorf("Expected nil error message, got: %v", err)
 	}
 }
-
-func TestANSIRenderer_ColorCodes(t *testing.T) {
-	renderer := NewANSIRenderer()
-
-	report := &models.Report{
-		Target:    "colortest.com",
-		Timestamp: time.Now(),
-		Identity:  models.Identity{IP: "1.2.3.4"},
-	}
-
-	var buf bytes.Buffer
-	err := renderer.Render(&buf, report)
-
-	if err != nil {
-		t.Errorf("Expected no error, got: %v", err)
-	}
-
-	output := buf.String()
-
-	// Check for ANSI escape sequences
-	if !strings.Contains(output, "\033[") {
-		t.Error("Expected ANSI color codes in output")
-	}
-
-	// Check for reset codes
-	if !strings.Contains(output, Reset) {
-		t.Error("Expected ANSI reset codes")
-	}
-
-	// Check for bold codes
-	if !strings.Contains(output, Bold) {
-		t.Error("Expected ANSI bold codes")
-	}
-}
