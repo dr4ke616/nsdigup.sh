@@ -21,7 +21,7 @@ func TestJSONRenderer_Render(t *testing.T) {
 			Nameservers: []string{"ns1.example.com", "ns2.example.com"},
 			Registrar:   "Example Registrar",
 		},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{
 				Issuer:     "Let's Encrypt",
 				CommonName: "example.com",
@@ -147,7 +147,7 @@ func TestJSONRenderer_EmptyReport(t *testing.T) {
 		Target:    "empty.com",
 		Timestamp: time.Now(),
 		Identity:  models.Identity{},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{},
 			History: []models.CertDetails{},
 		},
@@ -217,7 +217,7 @@ func TestJSONRenderer_ComplexStructures(t *testing.T) {
 		Identity: models.Identity{
 			Nameservers: []string{"ns1.complex.com", "ns2.complex.com", "ns3.complex.com"},
 		},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			History: []models.CertDetails{
 				{
 					Issuer:     "Old CA",

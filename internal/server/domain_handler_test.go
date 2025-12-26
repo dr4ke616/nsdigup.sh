@@ -236,7 +236,7 @@ func TestHandler_JSONResponse(t *testing.T) {
 			IP:          "192.168.1.1",
 			Nameservers: []string{"ns1.example.com", "ns2.example.com"},
 		},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{
 				Issuer:     "Test CA",
 				CommonName: "example.com",

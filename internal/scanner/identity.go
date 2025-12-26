@@ -10,13 +10,13 @@ import (
 	"checks/pkg/models"
 )
 
-type DNSScanner struct{}
+type IdentityScanner struct{}
 
-func NewDNSScanner() *DNSScanner {
-	return &DNSScanner{}
+func NewIdentityScanner() *IdentityScanner {
+	return &IdentityScanner{}
 }
 
-func (d *DNSScanner) ScanIdentity(ctx context.Context, domain string) (*models.Identity, error) {
+func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*models.Identity, error) {
 	identity := &models.Identity{
 		Registrar:   "",
 		Owner:       "",

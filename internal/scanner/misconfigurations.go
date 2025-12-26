@@ -13,13 +13,13 @@ import (
 	"checks/pkg/models"
 )
 
-type ConfigScanner struct{}
+type MisconfigurationScanner struct{}
 
-func NewConfigScanner() *ConfigScanner {
-	return &ConfigScanner{}
+func NewMisconfigurationScanner() *MisconfigurationScanner {
+	return &MisconfigurationScanner{}
 }
 
-func (c *ConfigScanner) ScanMisconfigurations(ctx context.Context, domain string) (*models.Misconfigurations, error) {
+func (m *MisconfigurationScanner) ScanMisconfigurations(ctx context.Context, domain string) (*models.Misconfigurations, error) {
 	misconfigs := &models.Misconfigurations{
 		DNSGlue:  []string{},
 		Headers:  []string{},
@@ -31,7 +31,7 @@ func (c *ConfigScanner) ScanMisconfigurations(ctx context.Context, domain string
 	headersDone := make(chan bool, 1)
 
 	go func() {
-		emailSec, err := c.checkEmailSecurity(ctx, domain)
+		emailSec, err := m.checkEmailSecurity(ctx, domain)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -41,7 +41,7 @@ func (c *ConfigScanner) ScanMisconfigurations(ctx context.Context, domain string
 	}()
 
 	go func() {
-		headers, err := c.checkHeaders(ctx, domain)
+		headers, err := m.checkHeaders(ctx, domain)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -58,7 +58,7 @@ func (c *ConfigScanner) ScanMisconfigurations(ctx context.Context, domain string
 		case <-ctx.Done():
 			return misconfigs, ctx.Err()
 		case <-timeout.C:
-			return misconfigs, fmt.Errorf("config scan timeout")
+			return misconfigs, fmt.Errorf("misconfiguration scan timeout")
 		case <-emailDone:
 		case <-headersDone:
 		case <-errChan:
@@ -68,7 +68,7 @@ func (c *ConfigScanner) ScanMisconfigurations(ctx context.Context, domain string
 	return misconfigs, nil
 }
 
-func (c *ConfigScanner) checkEmailSecurity(ctx context.Context, domain string) (models.EmailSec, error) {
+func (m *MisconfigurationScanner) checkEmailSecurity(ctx context.Context, domain string) (models.EmailSec, error) {
 	emailSec := models.EmailSec{}
 
 	resolver := &net.Resolver{}
@@ -117,7 +117,7 @@ func (c *ConfigScanner) checkEmailSecurity(ctx context.Context, domain string) (
 	return emailSec, nil
 }
 
-func (c *ConfigScanner) checkHeaders(ctx context.Context, domain string) ([]string, error) {
+func (m *MisconfigurationScanner) checkHeaders(ctx context.Context, domain string) ([]string, error) {
 	issues := []string{}
 
 	client := &http.Client{

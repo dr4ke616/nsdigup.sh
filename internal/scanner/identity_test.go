@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func TestDNSScanner_ScanIdentity(t *testing.T) {
-	scanner := NewDNSScanner()
+func TestIdentityScanner_ScanIdentity(t *testing.T) {
+	scanner := NewIdentityScanner()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -76,8 +76,8 @@ func TestDNSScanner_ScanIdentity(t *testing.T) {
 	}
 }
 
-func TestDNSScanner_ContextCancellation(t *testing.T) {
-	scanner := NewDNSScanner()
+func TestIdentityScanner_ContextCancellation(t *testing.T) {
+	scanner := NewIdentityScanner()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 

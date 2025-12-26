@@ -57,7 +57,7 @@ func TestHandler_ANSIFormat(t *testing.T) {
 			IP:          "5.6.7.8",
 			Nameservers: []string{"ns1.test.com", "ns2.test.com"},
 		},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{
 				CommonName: "ansi-test.com",
 				Issuer:     "Test CA",

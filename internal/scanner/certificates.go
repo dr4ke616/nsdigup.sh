@@ -13,14 +13,14 @@ import (
 	"checks/pkg/models"
 )
 
-type SSLScanner struct{}
+type CertificateScanner struct{}
 
-func NewSSLScanner() *SSLScanner {
-	return &SSLScanner{}
+func NewCertificateScanner() *CertificateScanner {
+	return &CertificateScanner{}
 }
 
-func (s *SSLScanner) ScanCertificates(ctx context.Context, domain string) (*models.CertData, error) {
-	certData := &models.CertData{
+func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string) (*models.Certificates, error) {
+	certData := &models.Certificates{
 		History: []models.CertDetails{},
 	}
 

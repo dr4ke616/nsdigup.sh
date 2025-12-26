@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func TestConfigScanner_ScanMisconfigurations(t *testing.T) {
-	scanner := NewConfigScanner()
+func TestMisconfigurationScanner_ScanMisconfigurations(t *testing.T) {
+	scanner := NewMisconfigurationScanner()
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -72,8 +72,8 @@ func TestConfigScanner_ScanMisconfigurations(t *testing.T) {
 	}
 }
 
-func TestConfigScanner_EmailSecurity(t *testing.T) {
-	scanner := NewConfigScanner()
+func TestMisconfigurationScanner_EmailSecurity(t *testing.T) {
+	scanner := NewMisconfigurationScanner()
 	ctx := context.Background()
 
 	tests := []struct {
@@ -143,8 +143,8 @@ func TestConfigScanner_EmailSecurity(t *testing.T) {
 	}
 }
 
-func TestConfigScanner_Headers(t *testing.T) {
-	scanner := NewConfigScanner()
+func TestMisconfigurationScanner_Headers(t *testing.T) {
+	scanner := NewMisconfigurationScanner()
 	ctx := context.Background()
 
 	importantHeaders := []string{
@@ -193,8 +193,8 @@ func TestConfigScanner_Headers(t *testing.T) {
 	}
 }
 
-func TestConfigScanner_ContextTimeout(t *testing.T) {
-	scanner := NewConfigScanner()
+func TestMisconfigurationScanner_ContextTimeout(t *testing.T) {
+	scanner := NewMisconfigurationScanner()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
 	defer cancel()
 

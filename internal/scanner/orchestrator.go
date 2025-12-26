@@ -15,16 +15,16 @@ type Scanner interface {
 }
 
 type Orchestrator struct {
-	dns    *DNSScanner
-	ssl    *SSLScanner
-	config *ConfigScanner
+	identity         *IdentityScanner
+	certificate      *CertificateScanner
+	misconfiguration *MisconfigurationScanner
 }
 
 func NewOrchestrator() *Orchestrator {
 	return &Orchestrator{
-		dns:    NewDNSScanner(),
-		ssl:    NewSSLScanner(),
-		config: NewConfigScanner(),
+		identity:         NewIdentityScanner(),
+		certificate:      NewCertificateScanner(),
+		misconfiguration: NewMisconfigurationScanner(),
 	}
 }
 
@@ -43,22 +43,22 @@ func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report,
 
 	wg.Add(3)
 
-	// DNS scan
+	// Identity scan
 	go func() {
 		defer wg.Done()
 		start := time.Now()
-		identity, err := o.dns.ScanIdentity(ctx, domain)
+		identity, err := o.identity.ScanIdentity(ctx, domain)
 		duration := time.Since(start)
 
 		mu.Lock()
 		if err != nil {
-			log.Warn("DNS scan failed",
+			log.Warn("identity scan failed",
 				slog.String("domain", domain),
 				slog.String("error", err.Error()),
 				slog.Duration("duration", duration))
 			errors = append(errors, err)
 		} else if identity != nil {
-			log.Debug("DNS scan completed",
+			log.Debug("identity scan completed",
 				slog.String("domain", domain),
 				slog.Duration("duration", duration),
 				slog.String("ip", identity.IP))
@@ -69,22 +69,22 @@ func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report,
 		mu.Unlock()
 	}()
 
-	// SSL scan
+	// Certificate scan
 	go func() {
 		defer wg.Done()
 		start := time.Now()
-		certData, err := o.ssl.ScanCertificates(ctx, domain)
+		certData, err := o.certificate.ScanCertificates(ctx, domain)
 		duration := time.Since(start)
 
 		mu.Lock()
 		if err != nil {
-			log.Warn("SSL scan failed",
+			log.Warn("certificate scan failed",
 				slog.String("domain", domain),
 				slog.String("error", err.Error()),
 				slog.Duration("duration", duration))
 			errors = append(errors, err)
 		} else if certData != nil {
-			log.Debug("SSL scan completed",
+			log.Debug("certificate scan completed",
 				slog.String("domain", domain),
 				slog.Duration("duration", duration),
 				slog.String("issuer", certData.Current.Issuer))
@@ -95,22 +95,22 @@ func (o *Orchestrator) Scan(ctx context.Context, domain string) (*models.Report,
 		mu.Unlock()
 	}()
 
-	// Config scan
+	// Misconfiguration scan
 	go func() {
 		defer wg.Done()
 		start := time.Now()
-		misconfigs, err := o.config.ScanMisconfigurations(ctx, domain)
+		misconfigs, err := o.misconfiguration.ScanMisconfigurations(ctx, domain)
 		duration := time.Since(start)
 
 		mu.Lock()
 		if err != nil {
-			log.Warn("config scan failed",
+			log.Warn("misconfiguration scan failed",
 				slog.String("domain", domain),
 				slog.String("error", err.Error()),
 				slog.Duration("duration", duration))
 			errors = append(errors, err)
 		} else if misconfigs != nil {
-			log.Debug("config scan completed",
+			log.Debug("misconfiguration scan completed",
 				slog.String("domain", domain),
 				slog.Duration("duration", duration),
 				slog.Int("header_issues", len(misconfigs.Headers)))

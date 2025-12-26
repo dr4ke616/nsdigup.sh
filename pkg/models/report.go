@@ -6,7 +6,7 @@ type Report struct {
 	Target            string            `json:"target"`
 	Timestamp         time.Time         `json:"timestamp"`
 	Identity          Identity          `json:"identity"`
-	Certificates      CertData          `json:"certificates"`
+	Certificates      Certificates      `json:"certificates"`
 	Misconfigurations Misconfigurations `json:"misconfigurations"`
 	HTTP              HTTPDetails       `json:"http_details"`
 }
@@ -19,7 +19,7 @@ type Identity struct {
 	Nameservers []string `json:"nameservers"`
 }
 
-type CertData struct {
+type Certificates struct {
 	Current CertDetails   `json:"current"`
 	History []CertDetails `json:"history"`
 }

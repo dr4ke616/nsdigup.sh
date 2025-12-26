@@ -22,7 +22,7 @@ func TestANSIRenderer_Render(t *testing.T) {
 			Owner:       "Example Corp",
 			ExpiresDays: 45,
 		},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{
 				Issuer:     "Let's Encrypt",
 				CommonName: "example.com",
@@ -100,7 +100,7 @@ func TestANSIRenderer_EmptyFields(t *testing.T) {
 			IP: "1.2.3.4",
 			// No registrar, owner, expires - should be hidden
 		},
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			// No current certificate
 		},
 		Misconfigurations: models.Misconfigurations{
@@ -152,7 +152,7 @@ func TestANSIRenderer_WildcardCertificate(t *testing.T) {
 	report := &models.Report{
 		Target:    "wildcard.com",
 		Timestamp: time.Now(),
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{
 				CommonName: "*.wildcard.com",
 				IsWildcard: true,
@@ -187,7 +187,7 @@ func TestANSIRenderer_ExpiredCertificate(t *testing.T) {
 	report := &models.Report{
 		Target:    "expired.com",
 		Timestamp: time.Now(),
-		Certificates: models.CertData{
+		Certificates: models.Certificates{
 			Current: models.CertDetails{
 				CommonName: "expired.com",
 				NotAfter:   yesterday,

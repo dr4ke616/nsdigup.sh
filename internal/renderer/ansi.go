@@ -77,7 +77,7 @@ func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) er
 	return nil
 }
 
-func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.CertData) error {
+func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificates) error {
 	fmt.Fprintf(w, "[ CERTIFICATES ]\n")
 
 	// Current certificate
