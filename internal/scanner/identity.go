@@ -20,11 +20,7 @@ func NewIdentityScanner(timeout time.Duration) *IdentityScanner {
 }
 
 func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*models.Identity, error) {
-	identity := &models.Identity{
-		Registrar:   "",
-		Owner:       "",
-		ExpiresDays: 0,
-	}
+	identity := &models.Identity{}
 
 	// Channels for parallel checks
 	ipsChan := make(chan string, 1)
@@ -121,7 +117,8 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 	if whoisResult.Error == nil {
 		identity.Registrar = whoisResult.Registrar
 		identity.Owner = whoisResult.Owner
-		identity.ExpiresDays = whoisResult.ExpiresDays
+		identity.ExpiresAt = whoisResult.ExpiresAt
+		identity.ExpiresInDays = whoisResult.ExpiresInDays
 	}
 
 	if identity.IP == "" && len(errors) > 0 {

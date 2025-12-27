@@ -11,11 +11,12 @@ type Report struct {
 }
 
 type Identity struct {
-	IP          string   `json:"ip_address"`
-	Registrar   string   `json:"registrar"`
-	Owner       string   `json:"owner"`
-	ExpiresDays int      `json:"expires_days"`
-	Nameservers []string `json:"nameservers"`
+	IP            string    `json:"ip_address"`
+	Registrar     string    `json:"registrar"`
+	Owner         string    `json:"owner"`
+	ExpiresAt     time.Time `json:"expires_at,omitempty"`
+	ExpiresInDays int       `json:"expires_in_days,omitempty"`
+	Nameservers   []string  `json:"nameservers"`
 
 	// DNSSEC validation
 	DNSSECEnabled bool   `json:"dnssec_enabled,omitempty"`
@@ -28,11 +29,12 @@ type Identity struct {
 }
 
 type Certificates struct {
-	Issuer     string    `json:"issuer"`
-	CommonName string    `json:"common_name"`
-	NotAfter   time.Time `json:"expires_at"`
-	Status     string    `json:"status"`
-	IsWildcard bool      `json:"is_wildcard"`
+	Issuer        string    `json:"issuer"`
+	CommonName    string    `json:"common_name"`
+	ExpiresAt     time.Time `json:"expires_at"`
+	ExpiresInDays int       `json:"expires_in_days"`
+	Status        string    `json:"status"`
+	IsWildcard    bool      `json:"is_wildcard"`
 
 	// TLS protocol and cipher analysis
 	TLSVersions      []string `json:"tls_versions,omitempty"`

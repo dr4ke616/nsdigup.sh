@@ -69,9 +69,10 @@ func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) er
 		fmt.Fprintf(w, "  Owner: %s\n", identity.Owner)
 	}
 
-	if identity.ExpiresDays > 0 {
-		fmt.Fprintf(w, "  Domain Expires: %d days\n", identity.ExpiresDays)
-	} else if identity.ExpiresDays < 0 && identity.Registrar != "" {
+	if !identity.ExpiresAt.IsZero() {
+		expiryDate := identity.ExpiresAt.Format("2006-01-02")
+		fmt.Fprintf(w, "  Domain Expires: %s (%d days)\n", expiryDate, identity.ExpiresInDays)
+	} else if identity.Registrar != "" {
 		// WHOIS was attempted but expiry date couldn't be parsed
 		fmt.Fprintf(w, "  Domain Expires: Unknown\n")
 	}
@@ -123,11 +124,9 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 
 		fmt.Fprintf(w, "    Status: %s\n", certs.Status)
 
-		if !certs.NotAfter.IsZero() {
-			expiry := certs.NotAfter.Format("2006-01-02")
-			daysUntilExpiry := int(time.Until(certs.NotAfter).Hours() / 24)
-
-			fmt.Fprintf(w, "    Expires: %s (%d days)\n", expiry, daysUntilExpiry)
+		if !certs.ExpiresAt.IsZero() {
+			expiry := certs.ExpiresAt.Format("2006-01-02")
+			fmt.Fprintf(w, "    Cert Expires: %s (%d days)\n", expiry, certs.ExpiresInDays)
 		}
 	} else {
 		fmt.Fprintf(w, "  No certificate information available\n")

@@ -11,10 +11,11 @@ import (
 
 // WHOISResult contains the parsed WHOIS information
 type WHOISResult struct {
-	Registrar   string
-	Owner       string
-	ExpiresDays int
-	Error       error
+	Registrar     string
+	Owner         string
+	ExpiresAt     time.Time
+	ExpiresInDays int
+	Error         error
 }
 
 // CheckWHOIS fetches and parses WHOIS data for a domain
@@ -29,8 +30,7 @@ func CheckWHOIS(ctx context.Context, domain string, timeout time.Duration) WHOIS
 		rawData, err := whois.Whois(domain)
 		if err != nil {
 			done <- WHOISResult{
-				ExpiresDays: -1,
-				Error:       fmt.Errorf("WHOIS fetch failed: %w", err),
+				Error: fmt.Errorf("WHOIS fetch failed: %w", err),
 			}
 			return
 		}
@@ -39,8 +39,7 @@ func CheckWHOIS(ctx context.Context, domain string, timeout time.Duration) WHOIS
 		parsed, err := whoisparser.Parse(rawData)
 		if err != nil {
 			done <- WHOISResult{
-				ExpiresDays: -1,
-				Error:       fmt.Errorf("WHOIS parse failed: %w", err),
+				Error: fmt.Errorf("WHOIS parse failed: %w", err),
 			}
 			return
 		}
@@ -62,20 +61,22 @@ func CheckWHOIS(ctx context.Context, domain string, timeout time.Duration) WHOIS
 		}
 
 		// Calculate days until expiration
-		expiresDays := -1
+		var expiresAt time.Time
+		expiresInDays := 0
 		if parsed.Domain != nil && parsed.Domain.ExpirationDate != "" {
 			expiryDate, err := parseDate(parsed.Domain.ExpirationDate)
 			if err == nil {
-				daysUntil := int(time.Until(expiryDate).Hours() / 24)
-				expiresDays = daysUntil
+				expiresAt = expiryDate
+				expiresInDays = int(time.Until(expiryDate).Hours() / 24)
 			}
 		}
 
 		done <- WHOISResult{
-			Registrar:   registrar,
-			Owner:       owner,
-			ExpiresDays: expiresDays,
-			Error:       nil,
+			Registrar:     registrar,
+			Owner:         owner,
+			ExpiresAt:     expiresAt,
+			ExpiresInDays: expiresInDays,
+			Error:         nil,
 		}
 	}()
 
@@ -86,15 +87,13 @@ func CheckWHOIS(ctx context.Context, domain string, timeout time.Duration) WHOIS
 	select {
 	case <-ctx.Done():
 		return WHOISResult{
-			ExpiresDays: -1,
-			Error:       fmt.Errorf("WHOIS query timeout"),
+			Error: fmt.Errorf("WHOIS query timeout"),
 		}
 	case res := <-done:
 		return res
 	case <-timer.C:
 		return WHOISResult{
-			ExpiresDays: -1,
-			Error:       fmt.Errorf("WHOIS query timeout after 3s"),
+			Error: fmt.Errorf("WHOIS query timeout after 3s"),
 		}
 	}
 }

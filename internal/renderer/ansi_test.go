@@ -16,18 +16,20 @@ func TestANSIRenderer_Render(t *testing.T) {
 		Target:    "example.com",
 		Timestamp: time.Date(2023, 12, 25, 10, 30, 0, 0, time.UTC),
 		Identity: models.Identity{
-			IP:          "192.168.1.1",
-			Nameservers: []string{"ns1.example.com", "ns2.example.com"},
-			Registrar:   "Example Registrar",
-			Owner:       "Example Corp",
-			ExpiresDays: 45,
+			IP:            "192.168.1.1",
+			Nameservers:   []string{"ns1.example.com", "ns2.example.com"},
+			Registrar:     "Example Registrar",
+			Owner:         "Example Corp",
+			ExpiresAt:     time.Date(2024, 2, 8, 0, 0, 0, 0, time.UTC),
+			ExpiresInDays: 45,
 		},
 		Certificates: models.Certificates{
-			Issuer:     "Let's Encrypt",
-			CommonName: "example.com",
-			NotAfter:   time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
-			Status:     "Active",
-			IsWildcard: false,
+			Issuer:        "Let's Encrypt",
+			CommonName:    "example.com",
+			ExpiresAt:     time.Date(2024, 3, 15, 0, 0, 0, 0, time.UTC),
+			ExpiresInDays: 81,
+			Status:        "Active",
+			IsWildcard:    false,
 		},
 		Findings: models.Findings{
 			Email: models.EmailFindings{
@@ -188,9 +190,10 @@ func TestANSIRenderer_ExpiredCertificate(t *testing.T) {
 		Target:    "expired.com",
 		Timestamp: time.Now(),
 		Certificates: models.Certificates{
-			CommonName: "expired.com",
-			NotAfter:   yesterday,
-			Status:     "Expired",
+			CommonName:    "expired.com",
+			ExpiresAt:     yesterday,
+			ExpiresInDays: -1,
+			Status:        "Expired",
 		},
 	}
 

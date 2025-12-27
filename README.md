@@ -82,13 +82,15 @@ Command line flags override environment variables.
 
 - **IP Resolution**: Primary IPv4 address lookup
 - **Nameservers**: Complete NS record enumeration
-- **WHOIS Data**: Registrar information and domain ownership
+- **WHOIS Data**: Registrar, owner, and domain expiration tracking
+- **Domain Expiration**: Timestamp and days until expiration
 - **DNSSEC**: Validation status and error reporting
 - **CAA Records**: Certificate Authority Authorization policy
 
 ### SSL/TLS Analysis
 
-- **Certificate Chain**: Issuer, common name, expiration dates
+- **Certificate Chain**: Issuer, common name, expiration timestamp and days
+- **Expiration Tracking**: Consistent date format with days-until-expiry
 - **Wildcard Detection**: Identifies wildcard certificates
 - **Status Tracking**: Active, expired, or expiring soon
 - **TLS Protocol Versions**: Supported TLS versions (1.0, 1.1, 1.2, 1.3)
@@ -137,6 +139,9 @@ Scanned: 2025-12-27T10:30:00Z
     • ns2.google.com
     • ns3.google.com
     • ns4.google.com
+  Registrar: MarkMonitor Inc.
+  Owner: Google LLC
+  Domain Expires: 2025-09-13 (260 days)
   DNSSEC: ✓ Enabled and Valid
   CAA Records:
     • google.com
@@ -147,7 +152,7 @@ Scanned: 2025-12-27T10:30:00Z
     Common Name: *.google.com (wildcard)
     Issuer: WR2
     Status: Active
-    Expires: 2026-02-25 (428 days)
+    Cert Expires: 2026-02-25 (428 days)
 
   TLS Configuration:
     Supported TLS Versions: TLS 1.2, TLS 1.3
@@ -180,7 +185,8 @@ Structured data for automation and integration:
     "nameservers": ["ns1.google.com", "ns2.google.com", "ns3.google.com", "ns4.google.com"],
     "registrar": "MarkMonitor Inc.",
     "owner": "Google LLC",
-    "expires_days": 245,
+    "expires_at": "2025-09-13T00:00:00Z",
+    "expires_in_days": 260,
     "dnssec_enabled": true,
     "dnssec_valid": true,
     "caa_records": ["google.com", "pki.goog"]
@@ -189,6 +195,7 @@ Structured data for automation and integration:
     "issuer": "WR2",
     "common_name": "*.google.com",
     "expires_at": "2026-02-25T15:49:26Z",
+    "expires_in_days": 428,
     "status": "Active",
     "is_wildcard": true,
     "tls_versions": ["TLS 1.2", "TLS 1.3"],

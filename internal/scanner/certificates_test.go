@@ -67,7 +67,7 @@ func TestCertificateScanner_ScanCertificates(t *testing.T) {
 				if certData.Status == "" {
 					t.Error("Expected certificate status but got empty")
 				}
-				if certData.NotAfter.IsZero() {
+				if certData.ExpiresAt.IsZero() {
 					t.Error("Expected certificate expiry date but got zero time")
 				}
 
@@ -120,16 +120,16 @@ func TestCertificateScanner_CertificateExpiry(t *testing.T) {
 	}
 
 	now := time.Now()
-	if certData.NotAfter.Before(now) && certData.Status != "Expired" {
+	if certData.ExpiresAt.Before(now) && certData.Status != "Expired" {
 		t.Error("Certificate is expired but status is not 'Expired'")
 	}
 
-	if certData.NotAfter.After(now) && certData.Status == "Expired" {
+	if certData.ExpiresAt.After(now) && certData.Status == "Expired" {
 		t.Error("Certificate is not expired but status is 'Expired'")
 	}
 
 	thirtyDaysFromNow := now.Add(30 * 24 * time.Hour)
-	if certData.NotAfter.After(now) && certData.NotAfter.Before(thirtyDaysFromNow) {
+	if certData.ExpiresAt.After(now) && certData.ExpiresAt.Before(thirtyDaysFromNow) {
 		if certData.Status != "Expiring Soon" {
 			t.Error("Certificate expires within 30 days but status is not 'Expiring Soon'")
 		}
