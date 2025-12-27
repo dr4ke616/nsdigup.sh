@@ -13,11 +13,12 @@ import (
 
 // CertInfo contains the certificate details extracted from a TLS connection.
 type CertInfo struct {
-	Issuer     string
-	CommonName string
-	NotAfter   time.Time
-	Status     string
-	IsWildcard bool
+	Issuer        string
+	CommonName    string
+	ExpiresAt     time.Time
+	ExpiresInDays int
+	Status        string
+	IsWildcard    bool
 }
 
 // GetCertDetails retrieves and analyzes the TLS certificate for the given domain.
@@ -48,16 +49,18 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 		issuer = cert.Issuer.Organization[0]
 	}
 
+	// Calculate days until expiration
+	expiresInDays := int(time.Until(cert.NotAfter).Hours() / 24)
+
 	status := "Active"
 	if time.Now().After(cert.NotAfter) {
 		status = "Expired"
 	} else if time.Now().Add(30 * 24 * time.Hour).After(cert.NotAfter) {
 		status = "Expiring Soon"
-		daysRemaining := int(time.Until(cert.NotAfter).Hours() / 24)
 		logger.Get().Debug("certificate expiring soon",
 			slog.String("domain", domain),
 			slog.String("common_name", cert.Subject.CommonName),
-			slog.Int("days_remaining", daysRemaining),
+			slog.Int("days_remaining", expiresInDays),
 			slog.Time("expires", cert.NotAfter))
 	}
 
@@ -73,10 +76,11 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 	}
 
 	return CertInfo{
-		Issuer:     issuer,
-		CommonName: cert.Subject.CommonName,
-		NotAfter:   cert.NotAfter,
-		Status:     status,
-		IsWildcard: isWildcard,
+		Issuer:        issuer,
+		CommonName:    cert.Subject.CommonName,
+		ExpiresAt:     cert.NotAfter,
+		ExpiresInDays: expiresInDays,
+		Status:        status,
+		IsWildcard:    isWildcard,
 	}, nil
 }

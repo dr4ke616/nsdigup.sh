@@ -69,14 +69,10 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 	// Set certificate details
 	certData.Issuer = certDetails.Issuer
 	certData.CommonName = certDetails.CommonName
-	certData.ExpiresAt = certDetails.NotAfter
+	certData.ExpiresAt = certDetails.ExpiresAt
+	certData.ExpiresInDays = certDetails.ExpiresInDays
 	certData.Status = certDetails.Status
 	certData.IsWildcard = certDetails.IsWildcard
-
-	// Calculate days until expiration
-	if !certDetails.NotAfter.IsZero() {
-		certData.ExpiresInDays = int(time.Until(certDetails.NotAfter).Hours() / 24)
-	}
 
 	// Set TLS analysis results
 	certData.TLSVersions = tlsResult.TLSVersions
