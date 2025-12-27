@@ -11,7 +11,7 @@ RUN addgroup -g 1000 nsdigup && \
 WORKDIR /app
 
 # Copy pre-built binary from host
-COPY bin/nsdigup.sh /app/nsdigup.sh
+COPY nsdigup.sh /app/nsdigup.sh
 
 # Change ownership
 RUN chown -R nsdigup:nsdigup /app

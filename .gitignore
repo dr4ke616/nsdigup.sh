@@ -8,6 +8,7 @@
 *.so
 *.dylib
 bin/*
+nsdigup.sh*
 
 # Test binary, built with `go test -c`
 *.test

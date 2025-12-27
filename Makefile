@@ -2,7 +2,7 @@
 
 # Application settings
 APP_NAME := nsdigup.sh
-BINARY := bin/$(APP_NAME)
+BINARY := $(APP_NAME)
 MAIN_PATH := ./cmd/nsdigup
 
 # Version information (injected at build time)
@@ -11,7 +11,7 @@ COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 
 # Build flags for version injection
-LDFLAGS := -ldflags "\
+LDFLAGS := -ldflags "-s -w \
 	-X main.Version=$(VERSION) \
 	-X main.Commit=$(COMMIT) \
 	-X main.BuildTime=$(BUILD_TIME)"
@@ -38,15 +38,6 @@ build:
 	@echo "Building $(APP_NAME)..."
 	$(GOBUILD) $(LDFLAGS) -o $(BINARY) $(MAIN_PATH)
 	@echo "Built: $(BINARY)"
-
-## build-all: Build for multiple platforms
-build-all:
-	@echo "Building for multiple platforms..."
-	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BINARY)-linux-amd64 $(MAIN_PATH)
-	GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(BINARY)-linux-arm64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BINARY)-darwin-amd64 $(MAIN_PATH)
-	GOOS=darwin GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(BINARY)-darwin-arm64 $(MAIN_PATH)
-	@echo "Built binaries for multiple platforms"
 
 ## test: Run all tests
 test:
@@ -94,9 +85,8 @@ tidy:
 ## clean: Remove build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
-	rm -rf bin/
-	rm -f coverage.out coverage.html
 	rm -f $(APP_NAME)
+	rm -f coverage.out coverage.html
 	@echo "Clean complete"
 
 ## run: Build and run the application
