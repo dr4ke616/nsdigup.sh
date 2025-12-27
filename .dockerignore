@@ -1,5 +1,4 @@
-# Build artifacts
-bin/
+# Build artifacts (keep bin/ as it contains pre-built binary for Docker)
 *.exe
 *.dll
 *.so
