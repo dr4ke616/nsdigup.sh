@@ -114,8 +114,7 @@ func (o *ScannerImpl) Scan(ctx context.Context, domain string) (*models.Report, 
 		} else if findings != nil {
 			log.Debug("findings scan completed",
 				slog.String("domain", domain),
-				slog.Duration("duration", duration),
-				slog.Int("header_issues", len(findings.Headers)))
+				slog.Duration("duration", duration))
 		}
 		if findings != nil {
 			report.Findings = *findings

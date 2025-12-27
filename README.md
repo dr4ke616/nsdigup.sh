@@ -128,28 +128,43 @@ High-density terminal output optimized for curl:
 ```
 ═══ nsdigup.sh ═══
 Target: google.com
-Scanned: 2025-12-26T18:30:00Z
+Scanned: 2025-12-27T10:30:00Z
 
 [ IDENTITY ]
-IP: 142.250.185.46
-Nameservers: ns1.google.com, ns2.google.com, ns3.google.com, ns4.google.com
-DNSSEC: Enabled ✓
-CAA: google.com, pki.goog, globalsign.com
+  IP Address: 142.250.185.46
+  Nameservers:
+    • ns1.google.com
+    • ns2.google.com
+    • ns3.google.com
+    • ns4.google.com
+  DNSSEC: ✓ Enabled and Valid
+  CAA Records:
+    • google.com
+    • pki.goog
 
 [ CERTIFICATES ]
-Issuer: WR2
-Common Name: *.google.com (wildcard)
-Expires: 2026-02-25T15:49:26Z (Active)
-TLS Versions: TLS 1.2, TLS 1.3
+  Current Certificate:
+    Common Name: *.google.com (wildcard)
+    Issuer: WR2
+    Status: Active
+    Expires: 2026-02-25 (428 days)
 
-[ SECURITY FINDINGS ]
-Email Security:
-  SPF: v=spf1 include:_spf.google.com ~all
-  DMARC: reject
+  TLS Configuration:
+    Supported TLS Versions: TLS 1.2, TLS 1.3
+    Cipher Suites: 15 detected
 
-HTTP Security Headers:
-  ⚠ Missing HSTS header
-  ⚠ Missing CSP header
+[ FINDINGS ]
+  HTTP Posture:
+    HTTPS Redirect: ✓ Enabled
+      Final URL: https://www.google.com/
+
+    Security Headers:
+      ⚠ Missing HSTS header
+      ⚠ Missing CSP header
+
+  Email Posture:
+    SPF: v=spf1 include:_spf.google.com ~all
+    DMARC Policy: reject
 ```
 
 ### JSON
@@ -159,14 +174,16 @@ Structured data for automation and integration:
 ```json
 {
   "target": "google.com",
-  "timestamp": "2025-12-26T18:30:00Z",
+  "timestamp": "2025-12-27T10:30:00Z",
   "identity": {
     "ip_address": "142.250.185.46",
-    "nameservers": ["ns1.google.com", "ns2.google.com"],
+    "nameservers": ["ns1.google.com", "ns2.google.com", "ns3.google.com", "ns4.google.com"],
+    "registrar": "MarkMonitor Inc.",
+    "owner": "Google LLC",
+    "expires_days": 245,
     "dnssec_enabled": true,
     "dnssec_valid": true,
-    "caa_records": ["google.com", "pki.goog"],
-    "registrar": "MarkMonitor Inc."
+    "caa_records": ["google.com", "pki.goog"]
   },
   "certificates": {
     "issuer": "WR2",
@@ -175,22 +192,28 @@ Structured data for automation and integration:
     "status": "Active",
     "is_wildcard": true,
     "tls_versions": ["TLS 1.2", "TLS 1.3"],
-    "weak_tls_versions": []
+    "weak_tls_versions": [],
+    "cipher_suites": ["TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384"],
+    "weak_cipher_suites": []
   },
   "findings": {
-    "email_security": {
-      "spf_record": "v=spf1 include:_spf.google.com ~all",
-      "dmarc_policy": "reject",
-      "is_weak": false
+    "http": {
+      "header_issues": [
+        "Missing HSTS header",
+        "Missing CSP header"
+      ],
+      "https_redirect": {
+        "enabled": true,
+        "status_code": 301,
+        "final_url": "https://www.google.com/"
+      }
     },
-    "header_issues": [
-      "Missing HSTS header",
-      "Missing CSP header"
-    ],
-    "https_redirect": {
-      "enabled": true,
-      "status_code": 301,
-      "final_url": "https://google.com/"
+    "email": {
+      "email_security": {
+        "spf_record": "v=spf1 include:_spf.google.com ~all",
+        "dmarc_policy": "reject",
+        "is_weak": false
+      }
     }
   }
 }
@@ -290,12 +313,12 @@ nsdigup/
 │   │   └── tools/                # Low-level utilities
 │   │       ├── dns.go            # DNS lookups
 │   │       ├── certs.go          # Certificate parsing
-│   │       ├── tls_analyzer.go   # TLS protocol/cipher analysis
-│   │       ├── security.go       # HTTP security headers
+│   │       ├── tls.go            # TLS protocol/cipher analysis
+│   │       ├── http.go           # HTTP security headers & redirects
+│   │       ├── email.go          # Email security (SPF/DMARC)
 │   │       ├── whois.go          # WHOIS queries
 │   │       ├── dnssec.go         # DNSSEC validation
-│   │       ├── caa.go            # CAA record checks
-│   │       └── redirect.go       # HTTPS redirect testing
+│   │       └── caa.go            # CAA record checks
 │   │
 │   └── server/                   # HTTP server
 │       ├── handler.go            # Request routing
@@ -310,12 +333,13 @@ nsdigup/
 
 ### Design Principles
 
-1. **Concurrent Execution**: All scanners run in parallel using goroutines
+1. **Concurrent Execution**: All scanners run in parallel using goroutines with synchronized collection
 2. **Graceful Degradation**: Partial results returned even if some scanners fail
-3. **Timeout Management**: Each scanner has configurable timeouts
+3. **Timeout Management**: Each scanner has configurable timeouts (default 10s)
 4. **Structured Logging**: All operations logged with context using slog
-5. **Zero External Dependencies**: Only Go standard library (except DNS/WHOIS)
-6. **HTTP-First**: Designed for curl and programmatic access
+5. **Minimal Dependencies**: Primarily Go standard library with DNS/WHOIS packages
+6. **HTTP-First**: Designed for curl and programmatic access with ANSI and JSON outputs
+7. **Organized Findings**: Security findings categorized by HTTP and Email posture for clarity
 
 ## Build & Development
 
@@ -416,10 +440,12 @@ make build
 
 ## Performance
 
-- **Response Time**: <2 seconds for most domains
+- **Response Time**: <2 seconds for most domains (WHOIS lookups may add latency)
 - **Concurrent Scanning**: 3 parallel scan types (identity, certificates, findings)
-- **Caching**: Optional in-memory cache with configurable TTL
-- **Timeouts**: 10-second default per scanner, customizable
+  - Identity scanner: 5 parallel operations (IP, NS, DNSSEC, CAA, WHOIS)
+  - Findings scanner: 3 parallel operations (email security, HTTP headers, HTTPS redirect)
+- **Caching**: Optional in-memory cache with configurable TTL (default 5 minutes)
+- **Timeouts**: 10-second default per scanner operation
 - **Lightweight**: Single binary, ~10MB, minimal memory footprint
 
 ## Troubleshooting

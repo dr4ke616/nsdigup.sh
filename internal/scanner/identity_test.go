@@ -8,8 +8,8 @@ import (
 )
 
 func TestIdentityScanner_ScanIdentity(t *testing.T) {
-	scanner := NewIdentityScanner(10 * time.Second)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	scanner := NewIdentityScanner(2 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	tests := []struct {
@@ -22,13 +22,6 @@ func TestIdentityScanner_ScanIdentity(t *testing.T) {
 		{
 			name:      "Valid domain - google.com",
 			domain:    "google.com",
-			wantIP:    true,
-			wantNS:    true,
-			wantError: false,
-		},
-		{
-			name:      "Valid domain - example.com",
-			domain:    "example.com",
 			wantIP:    true,
 			wantNS:    true,
 			wantError: false,

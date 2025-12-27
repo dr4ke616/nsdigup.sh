@@ -56,24 +56,24 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 
 	// DNSSEC validation
 	go func() {
-		result := tools.CheckDNSSEC(ctx, domain)
+		result := tools.CheckDNSSEC(ctx, domain, i.timeout)
 		dnssecChan <- result
 	}()
 
 	// CAA records
 	go func() {
-		result := tools.CheckCAA(ctx, domain)
+		result := tools.CheckCAA(ctx, domain, i.timeout)
 		caaChan <- result
 	}()
 
 	// WHOIS lookup
 	go func() {
-		result := tools.CheckWHOIS(ctx, domain)
+		result := tools.CheckWHOIS(ctx, domain, i.timeout)
 		whoisChan <- result
 	}()
 
-	timeout := time.NewTimer(i.timeout)
-	defer timeout.Stop()
+	timer := time.NewTimer(i.timeout)
+	defer timer.Stop()
 
 	var ip string
 	var nameservers []string
@@ -83,11 +83,11 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 	errors := []error{}
 
 	// Wait for all 5 checks to complete
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-timeout.C:
+		case <-timer.C:
 			return nil, fmt.Errorf("identity scan timeout")
 		case ipAddr := <-ipsChan:
 			ip = ipAddr

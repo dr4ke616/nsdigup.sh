@@ -71,6 +71,10 @@ test-coverage-html: test-coverage
 	$(GOCMD) tool cover -html=coverage.out -o coverage.html
 	@echo "HTML coverage report: coverage.html"
 
+test-clear-cache:
+	@echo "Clearing test cache..."
+	$(GOCMD) clean -testcache
+
 ## fmt: Format all Go files
 fmt:
 	@echo "Formatting Go files..."

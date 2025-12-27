@@ -30,12 +30,16 @@ func TestANSIRenderer_Render(t *testing.T) {
 			IsWildcard: false,
 		},
 		Findings: models.Findings{
-			EmailSec: models.EmailSec{
-				SPF:    "v=spf1 include:_spf.google.com ~all",
-				DMARC:  "reject",
-				IsWeak: false,
+			Email: models.EmailFindings{
+				EmailSec: models.EmailSec{
+					SPF:    "v=spf1 include:_spf.google.com ~all",
+					DMARC:  "reject",
+					IsWeak: false,
+				},
 			},
-			Headers: []string{"Missing HSTS header", "Missing CSP header"},
+			HTTP: models.HTTPFindings{
+				Headers: []string{"Missing HSTS header", "Missing CSP header"},
+			},
 		},
 	}
 
@@ -216,10 +220,12 @@ func TestANSIRenderer_WeakEmailSecurity(t *testing.T) {
 		Target:    "weak.com",
 		Timestamp: time.Now(),
 		Findings: models.Findings{
-			EmailSec: models.EmailSec{
-				SPF:    "v=spf1 +all", // Weak SPF
-				DMARC:  "none",        // Weak DMARC
-				IsWeak: true,
+			Email: models.EmailFindings{
+				EmailSec: models.EmailSec{
+					SPF:    "v=spf1 +all", // Weak SPF
+					DMARC:  "none",        // Weak DMARC
+					IsWeak: true,
+				},
 			},
 		},
 	}

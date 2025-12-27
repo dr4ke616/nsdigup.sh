@@ -18,7 +18,7 @@ type WHOISResult struct {
 }
 
 // CheckWHOIS fetches and parses WHOIS data for a domain
-func CheckWHOIS(ctx context.Context, domain string) WHOISResult {
+func CheckWHOIS(ctx context.Context, domain string, timeout time.Duration) WHOISResult {
 	domain = normalizeDomain(domain)
 
 	// Create a channel for the WHOIS operation with timeout
@@ -79,6 +79,9 @@ func CheckWHOIS(ctx context.Context, domain string) WHOISResult {
 		}
 	}()
 
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
 	// Wait for result or timeout (3 seconds as per plan)
 	select {
 	case <-ctx.Done():
@@ -88,7 +91,7 @@ func CheckWHOIS(ctx context.Context, domain string) WHOISResult {
 		}
 	case res := <-done:
 		return res
-	case <-time.After(3 * time.Second):
+	case <-timer.C:
 		return WHOISResult{
 			ExpiresDays: -1,
 			Error:       fmt.Errorf("WHOIS query timeout after 3s"),

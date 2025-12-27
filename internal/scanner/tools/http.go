@@ -128,6 +128,71 @@ func CheckHTTPSRedirect(ctx context.Context, domain string, timeout time.Duratio
 	return result
 }
 
+// CheckSecurityHeaders performs an HTTP request to the domain and checks for
+// security-related HTTP headers (HSTS, CSP, X-Frame-Options, etc.).
+// Returns a list of security issues found.
+func CheckHttpSecurityHeaders(ctx context.Context, domain string, timeout time.Duration) ([]string, error) {
+	issues := []string{}
+
+	client := &http.Client{
+		Timeout: timeout,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 3 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "HEAD", fmt.Sprintf("https://%s", domain), nil)
+	if err != nil {
+		return issues, err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		req.URL.Scheme = "http"
+		resp, err = client.Do(req)
+		if err != nil {
+			return issues, fmt.Errorf("HTTP request failed: %w", err)
+		}
+	}
+	defer resp.Body.Close()
+
+	if resp.Header.Get("Strict-Transport-Security") == "" {
+		issues = append(issues, "Missing HSTS header")
+	}
+
+	csp := resp.Header.Get("Content-Security-Policy")
+	if csp == "" {
+		issues = append(issues, "Missing CSP header")
+	} else if strings.Contains(csp, "unsafe-inline") || strings.Contains(csp, "unsafe-eval") {
+		issues = append(issues, "Weak CSP policy (contains unsafe-inline or unsafe-eval)")
+	}
+
+	if resp.Header.Get("X-Frame-Options") == "" && !strings.Contains(csp, "frame-ancestors") {
+		issues = append(issues, "Missing X-Frame-Options header")
+	}
+
+	if resp.Header.Get("X-Content-Type-Options") == "" {
+		issues = append(issues, "Missing X-Content-Type-Options header")
+	}
+
+	if resp.Header.Get("Referrer-Policy") == "" {
+		issues = append(issues, "Missing Referrer-Policy header")
+	}
+
+	permissionsPolicy := resp.Header.Get("Permissions-Policy")
+	if permissionsPolicy == "" {
+		permissionsPolicy = resp.Header.Get("Feature-Policy")
+	}
+	if permissionsPolicy == "" {
+		issues = append(issues, "Missing Permissions-Policy header")
+	}
+
+	return issues, nil
+}
+
 // isHTTPS checks if a URL uses HTTPS scheme
 func isHTTPS(urlStr string) bool {
 	parsed, err := url.Parse(urlStr)

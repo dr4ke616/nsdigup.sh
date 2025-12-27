@@ -43,19 +43,19 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 		tlsChan <- result
 	}()
 
-	timeout := time.NewTimer(c.timeout)
-	defer timeout.Stop()
+	timer := time.NewTimer(c.timeout)
+	defer timer.Stop()
 
 	var certDetails tools.CertInfo
 	var tlsResult tools.TLSAnalysisResult
 	errors := []error{}
 
 	// Wait for both checks to complete
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-		case <-timeout.C:
+		case <-timer.C:
 			return nil, fmt.Errorf("certificate scan timeout")
 		case cert := <-certChan:
 			certDetails = cert

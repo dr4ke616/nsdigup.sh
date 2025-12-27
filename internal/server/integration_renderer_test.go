@@ -64,12 +64,16 @@ func TestHandler_ANSIFormat(t *testing.T) {
 			IsWildcard: false,
 		},
 		Findings: models.Findings{
-			EmailSec: models.EmailSec{
-				SPF:    "v=spf1 ~all",
-				DMARC:  "quarantine",
-				IsWeak: false,
+			Email: models.EmailFindings{
+				EmailSec: models.EmailSec{
+					SPF:    "v=spf1 ~all",
+					DMARC:  "quarantine",
+					IsWeak: false,
+				},
 			},
-			Headers: []string{"Missing HSTS header"},
+			HTTP: models.HTTPFindings{
+				Headers: []string{"Missing HSTS header"},
+			},
 		},
 	}
 	mock := &mockScanner{report: mockReport}

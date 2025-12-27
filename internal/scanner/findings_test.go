@@ -59,14 +59,14 @@ func TestFindingsScanner_ScanFindings(t *testing.T) {
 
 			if tt.checkEmail {
 				t.Logf("Email Security for %s:", tt.domain)
-				t.Logf("  SPF: %s", findings.EmailSec.SPF)
-				t.Logf("  DMARC: %s", findings.EmailSec.DMARC)
-				t.Logf("  IsWeak: %v", findings.EmailSec.IsWeak)
+				t.Logf("  SPF: %s", findings.Email.EmailSec.SPF)
+				t.Logf("  DMARC: %s", findings.Email.EmailSec.DMARC)
+				t.Logf("  IsWeak: %v", findings.Email.EmailSec.IsWeak)
 			}
 
 			if tt.checkHeaders {
-				t.Logf("Header Issues for %s: %d issues", tt.domain, len(findings.Headers))
-				for _, issue := range findings.Headers {
+				t.Logf("Header Issues for %s: %d issues", tt.domain, len(findings.HTTP.Headers))
+				for _, issue := range findings.HTTP.Headers {
 					t.Logf("  - %s", issue)
 				}
 			}
@@ -160,7 +160,7 @@ func TestFindingsScanner_Headers(t *testing.T) {
 
 	for _, domain := range domains {
 		t.Run(domain, func(t *testing.T) {
-			headers, err := tools.CheckSecurityHeaders(ctx, domain, 5*time.Second)
+			headers, err := tools.CheckHttpSecurityHeaders(ctx, domain, 5*time.Second)
 			if err != nil {
 				t.Logf("Could not check headers for %s: %v", domain, err)
 				return

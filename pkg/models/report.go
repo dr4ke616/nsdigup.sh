@@ -8,7 +8,6 @@ type Report struct {
 	Identity     Identity     `json:"identity"`
 	Certificates Certificates `json:"certificates"`
 	Findings     Findings     `json:"findings"`
-	HTTP         HTTPDetails  `json:"http_details"`
 }
 
 type Identity struct {
@@ -43,11 +42,16 @@ type Certificates struct {
 }
 
 type Findings struct {
-	DNSGlue  []string `json:"dns_glue_issues"`
-	EmailSec EmailSec `json:"email_security"`
-	Headers  []string `json:"header_issues"`
+	HTTP  HTTPFindings  `json:"http"`
+	Email EmailFindings `json:"email"`
+}
 
-	// HTTPS redirect checking
+type EmailFindings struct {
+	EmailSec EmailSec `json:"email_security"`
+}
+
+type HTTPFindings struct {
+	Headers       []string           `json:"header_issues"`
 	HTTPSRedirect HTTPSRedirectCheck `json:"https_redirect,omitempty"`
 }
 
@@ -55,10 +59,6 @@ type EmailSec struct {
 	DMARC  string `json:"dmarc_policy"`
 	SPF    string `json:"spf_record"`
 	IsWeak bool   `json:"is_weak"`
-}
-
-type HTTPDetails struct {
-	StatusCode int `json:"status_code"`
 }
 
 type HTTPSRedirectCheck struct {

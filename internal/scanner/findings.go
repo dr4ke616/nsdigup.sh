@@ -20,11 +20,8 @@ func NewFindingsScanner(timeout time.Duration) *FindingsScanner {
 }
 
 func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*models.Findings, error) {
-	findings := &models.Findings{
-		DNSGlue:  []string{},
-		Headers:  []string{},
-		EmailSec: models.EmailSec{},
-	}
+	emailFindings := &models.EmailFindings{}
+	httpFindings := &models.HTTPFindings{}
 
 	errChan := make(chan error, 3)
 	emailDone := make(chan bool, 1)
@@ -36,17 +33,17 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 		if err != nil {
 			errChan <- err
 		} else {
-			findings.EmailSec = emailSec
+			emailFindings.EmailSec = emailSec
 		}
 		emailDone <- true
 	}()
 
 	go func() {
-		headers, err := tools.CheckSecurityHeaders(ctx, domain, m.timeout)
+		headers, err := tools.CheckHttpSecurityHeaders(ctx, domain, m.timeout)
 		if err != nil {
 			errChan <- err
 		} else {
-			findings.Headers = headers
+			httpFindings.Headers = headers
 		}
 		headersDone <- true
 	}()
@@ -56,16 +53,17 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 		redirectChan <- result
 	}()
 
-	timeout := time.NewTimer(m.timeout)
-	defer timeout.Stop()
+	timer := time.NewTimer(m.timeout)
+	defer timer.Stop()
+
+	findings := &models.Findings{HTTP: *httpFindings, Email: *emailFindings}
 
 	var redirectResult tools.RedirectResult
-
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		select {
 		case <-ctx.Done():
 			return findings, ctx.Err()
-		case <-timeout.C:
+		case <-timer.C:
 			return findings, fmt.Errorf("findings scan timeout")
 		case <-emailDone:
 		case <-headersDone:
@@ -76,13 +74,16 @@ func (m *FindingsScanner) ScanFindings(ctx context.Context, domain string) (*mod
 	}
 
 	// Set HTTPS redirect results
-	findings.HTTPSRedirect = models.HTTPSRedirectCheck{
+	httpFindings.HTTPSRedirect = models.HTTPSRedirectCheck{
 		Enabled:      redirectResult.Enabled,
 		StatusCode:   redirectResult.StatusCode,
 		FinalURL:     redirectResult.FinalURL,
 		RedirectLoop: redirectResult.RedirectLoop,
 		Error:        redirectResult.Error,
 	}
+
+	findings.HTTP = *httpFindings
+	findings.Email = *emailFindings
 
 	return findings, nil
 }

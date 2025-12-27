@@ -27,11 +27,15 @@ func TestJSONRenderer_Render(t *testing.T) {
 			IsWildcard: false,
 		},
 		Findings: models.Findings{
-			EmailSec: models.EmailSec{
-				SPF:   "v=spf1 ~all",
-				DMARC: "quarantine",
+			Email: models.EmailFindings{
+				EmailSec: models.EmailSec{
+					SPF:   "v=spf1 ~all",
+					DMARC: "quarantine",
+				},
 			},
-			Headers: []string{"Missing HSTS header"},
+			HTTP: models.HTTPFindings{
+				Headers: []string{"Missing HSTS header"},
+			},
 		},
 	}
 
@@ -65,12 +69,12 @@ func TestJSONRenderer_Render(t *testing.T) {
 		t.Errorf("Expected issuer 'Let's Encrypt', got '%s'", decoded.Certificates.Issuer)
 	}
 
-	if decoded.Findings.EmailSec.DMARC != "quarantine" {
-		t.Errorf("Expected DMARC 'quarantine', got '%s'", decoded.Findings.EmailSec.DMARC)
+	if decoded.Findings.Email.EmailSec.DMARC != "quarantine" {
+		t.Errorf("Expected DMARC 'quarantine', got '%s'", decoded.Findings.Email.EmailSec.DMARC)
 	}
 
-	if len(decoded.Findings.Headers) != 1 {
-		t.Errorf("Expected 1 header issue, got %d", len(decoded.Findings.Headers))
+	if len(decoded.Findings.HTTP.Headers) != 1 {
+		t.Errorf("Expected 1 header issue, got %d", len(decoded.Findings.HTTP.Headers))
 	}
 }
 
@@ -83,8 +87,9 @@ func TestJSONRenderer_EmptyReport(t *testing.T) {
 		Identity:     models.Identity{},
 		Certificates: models.Certificates{},
 		Findings: models.Findings{
-			DNSGlue: []string{},
-			Headers: []string{},
+			HTTP: models.HTTPFindings{
+				Headers: []string{},
+			},
 		},
 	}
 
@@ -150,11 +155,12 @@ func TestJSONRenderer_ComplexStructures(t *testing.T) {
 		},
 		Certificates: models.Certificates{},
 		Findings: models.Findings{
-			DNSGlue: []string{"dangling CNAME", "orphaned A record"},
-			Headers: []string{
-				"Missing HSTS header",
-				"Missing CSP header",
-				"Missing X-Frame-Options header",
+			HTTP: models.HTTPFindings{
+				Headers: []string{
+					"Missing HSTS header",
+					"Missing CSP header",
+					"Missing X-Frame-Options header",
+				},
 			},
 		},
 	}
@@ -176,12 +182,8 @@ func TestJSONRenderer_ComplexStructures(t *testing.T) {
 		t.Errorf("Expected 3 nameservers, got %d", len(decoded.Identity.Nameservers))
 	}
 
-	if len(decoded.Findings.Headers) != 3 {
-		t.Errorf("Expected 3 header issues, got %d", len(decoded.Findings.Headers))
-	}
-
-	if len(decoded.Findings.DNSGlue) != 2 {
-		t.Errorf("Expected 2 DNS glue issues, got %d", len(decoded.Findings.DNSGlue))
+	if len(decoded.Findings.HTTP.Headers) != 3 {
+		t.Errorf("Expected 3 header issues, got %d", len(decoded.Findings.HTTP.Headers))
 	}
 }
 
@@ -194,11 +196,15 @@ func TestJSONRenderer_SpecialCharacters(t *testing.T) {
 			Owner: "Test Corp \"Special Edition\"", // Contains quotes
 		},
 		Findings: models.Findings{
-			EmailSec: models.EmailSec{
-				SPF: "v=spf1 include:_spf.example.com ~all", // Contains special chars
+			Email: models.EmailFindings{
+				EmailSec: models.EmailSec{
+					SPF: "v=spf1 include:_spf.example.com ~all", // Contains special chars
+				},
 			},
-			Headers: []string{
-				"Content-Security-Policy: default-src 'self'", // Contains quotes and special chars
+			HTTP: models.HTTPFindings{
+				Headers: []string{
+					"Content-Security-Policy: default-src 'self'", // Contains quotes and special chars
+				},
 			},
 		},
 	}
@@ -223,7 +229,7 @@ func TestJSONRenderer_SpecialCharacters(t *testing.T) {
 	}
 
 	expectedSPF := "v=spf1 include:_spf.example.com ~all"
-	if decoded.Findings.EmailSec.SPF != expectedSPF {
-		t.Errorf("Expected SPF '%s', got '%s'", expectedSPF, decoded.Findings.EmailSec.SPF)
+	if decoded.Findings.Email.EmailSec.SPF != expectedSPF {
+		t.Errorf("Expected SPF '%s', got '%s'", expectedSPF, decoded.Findings.Email.EmailSec.SPF)
 	}
 }
