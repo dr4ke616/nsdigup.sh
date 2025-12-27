@@ -1,5 +1,5 @@
 # === Build Stage ===
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25.5-alpine AS builder
 
 # Install make and git (needed for version info)
 RUN apk add --no-cache make git ca-certificates tzdata
