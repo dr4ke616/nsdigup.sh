@@ -89,13 +89,17 @@ docker_manifests:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-arm64"
 
 release:
-  github:
-    owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
-    name: "{{ .ProjectName }}"
   draft: false
   prerelease: auto
   mode: replace
   header: |
-    ## Release {{ .Version }}
+    ## What's Changed
 
-    **Full Changelog**: https://github.com/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}/compare/{{ .PreviousTag }}...{{ .Tag }}
+    See the full changelog below with all commits and PRs since the previous release.
+
+    ## Download
+
+    Download binaries below or use Docker:
+    ```bash
+    docker pull ghcr.io/dr4ke616/nsdigup:{{ .Tag }}
+    ```
