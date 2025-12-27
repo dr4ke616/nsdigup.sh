@@ -21,8 +21,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Tests via Makefile
+      - name: Run Tests
         run: make test-clear-cache clean check
+
+      - name: Build
+        run: make build
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
