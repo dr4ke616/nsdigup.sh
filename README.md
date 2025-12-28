@@ -1,16 +1,62 @@
 # nsdigup.sh
 
-A comprehensive domain health monitoring HTTP service that provides instant security and configuration analysis for any domain. Built for curl-first interaction with high-density ANSI output and JSON support.
+[![CI/CD Pipeline](https://github.com/dr4ke616/nsdigup.sh/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/dr4ke616/nsdigup.sh/actions/workflows/docker-image.yml)
+
+A domain health monitoring HTTP service that provides instant security and configuration analysis for any domain. Built for curl-first interaction with high-density ANSI output and JSON support.
+
+**Site:** https://nsdigup.sh
 
 ## What It Does
 
-nsdigup.sh performs parallel security scans across multiple dimensions:
+`nsdigup.sh` performs parallel security scans across multiple dimensions:
 
 - **DNS & Identity**: IP resolution, nameserver enumeration, WHOIS data, DNSSEC validation, CAA records
 - **SSL/TLS Security**: Certificate details, expiry tracking, wildcard detection, TLS version analysis, weak cipher identification
 - **Email Security**: SPF and DMARC policy validation with weakness detection
 - **HTTP Security**: Security header analysis (HSTS, CSP, X-Frame-Options, etc.), HTTPS redirect checking
 - **Performance**: Concurrent scanning with <2s response time, optional in-memory caching
+
+## API Endpoints
+
+### `GET /`
+
+Landing page with usage instructions.
+
+**Request:**
+```bash
+curl http://localhost:8080/
+```
+
+**Response:**
+- ASCII banner with feature list and examples
+
+### `GET /{domain}`
+
+Scan a domain and return results.
+
+**Request:**
+```bash
+curl http://localhost:8080/example.com
+curl -H "Accept: application/json" http://localhost:8080/example.com
+```
+
+**Response:**
+- `200 OK` - Scan completed (ANSI or JSON based on Accept header)
+- `400 Bad Request` - Invalid domain format
+- `500 Internal Server Error` - Scan failure
+
+### `GET /health`
+
+Health check endpoint for load balancers and monitoring.
+
+**Request:**
+```bash
+curl http://localhost:8080/health
+```
+
+**Response:**
+- `200 OK` - Service is healthy
+- `{ "status": "ok" }`
 
 ## Quick Start
 
@@ -25,7 +71,7 @@ make build
 make run
 
 # Or with custom configuration
-./bin/nsdigup.sh --port 3000 --cache-ttl 10m
+./nsdigup.sh --port 3000 --cache-ttl 10m
 ```
 
 ### Query a Domain
@@ -39,12 +85,6 @@ curl -H "Accept: application/json" http://localhost:8080/google.com
 
 # With jq for pretty JSON
 curl -H "Accept: application/json" http://localhost:8080/github.com | jq .
-```
-
-### Check Server Health
-
-```bash
-curl http://localhost:8080/health
 ```
 
 ## Configuration
@@ -64,7 +104,7 @@ export NSDIGUP_LOG_FORMAT=text         # text or json
 ### Command Line Flags
 
 ```bash
-./bin/nsdigup.sh \
+./nsdigup.sh \
   --port 8080 \
   --host 0.0.0.0 \
   --name https://nsdigup.sh \
@@ -228,65 +268,22 @@ Structured data for automation and integration:
 
 ## Caching
 
-nsdigup.sh includes an intelligent caching layer to reduce redundant DNS lookups and API calls:
+`nsdigup.sh` includes a simple caching layer to reduce redundant DNS lookups and API calls:
 
-- **In-Memory Cache**: Fast, zero-dependency caching (default)
-- **No-Op Cache**: Disable caching for development or always-fresh results
-- **TTL-Based Expiration**: Configurable time-to-live (default: 5 minutes)
-- **Automatic Cleanup**: Background goroutine removes expired entries
-- **Cache Hit Logging**: Track cache effectiveness in debug logs
+- **In-Memory**: Fast, zero-dependency caching (default) with configurable time-to-live (default: 5 minutes)
+- **No-Op**: Disable caching for development or always-fresh results
 
 ```bash
 # Enable caching with 10-minute TTL
-./bin/nsdigup.sh --cache-mode mem --cache-ttl 10m
+./nsdigup.sh --cache-mode mem --cache-ttl 10m
 
 # Disable caching
-./bin/nsdigup.sh --cache-mode none
+./nsdigup.sh --cache-mode none
 ```
 
-## API Endpoints
+## Build & Development
 
-### `GET /{domain}`
-
-Scan a domain and return results.
-
-**Request:**
-```bash
-curl http://localhost:8080/example.com
-curl -H "Accept: application/json" http://localhost:8080/example.com
-```
-
-**Response:**
-- `200 OK` - Scan completed (ANSI or JSON based on Accept header)
-- `400 Bad Request` - Invalid domain format
-- `500 Internal Server Error` - Scan failure
-
-### `GET /health`
-
-Health check endpoint for load balancers and monitoring.
-
-**Request:**
-```bash
-curl http://localhost:8080/health
-```
-
-**Response:**
-- `200 OK` - Service is healthy
-- `{ "status": "ok" }`
-
-### `GET /`
-
-Landing page with usage instructions.
-
-**Request:**
-```bash
-curl http://localhost:8080/
-```
-
-**Response:**
-- ASCII banner with feature list and examples
-
-## Architecture
+### Architecture
 
 ```
 nsdigup/
@@ -338,21 +335,9 @@ nsdigup/
     └── report.go                 # Report, Identity, Certificates, Findings
 ```
 
-### Design Principles
-
-1. **Concurrent Execution**: All scanners run in parallel using goroutines with synchronized collection
-2. **Graceful Degradation**: Partial results returned even if some scanners fail
-3. **Timeout Management**: Each scanner has configurable timeouts (default 10s)
-4. **Structured Logging**: All operations logged with context using slog
-5. **Minimal Dependencies**: Primarily Go standard library with DNS/WHOIS packages
-6. **HTTP-First**: Designed for curl and programmatic access with ANSI and JSON outputs
-7. **Organized Findings**: Security findings categorized by HTTP and Email posture for clarity
-
-## Build & Development
-
 ### Prerequisites
 
-- Go 1.21 or later
+- Go 1.25.5 or later
 - Make (optional, for convenience commands)
 - Git (for version injection)
 
@@ -362,17 +347,11 @@ nsdigup/
 # Standard build
 make build
 
-# Build for multiple platforms
-make build-all
-
-# Install to $GOPATH/bin
-make install
-
 # Clean build artifacts
 make clean
 ```
 
-Binary will be created at `bin/nsdigup.sh` with version info automatically injected from git.
+Binary will be created at `./nsdigup.sh` with version info automatically injected from git.
 
 ### Testing
 
@@ -413,7 +392,7 @@ make run
 make dev
 
 # Run with custom config
-./bin/nsdigup.sh --port 3000 --cache-mode none --log-level debug
+./nsdigup.sh --port 3000 --cache-mode none --log-level debug
 ```
 
 ### Docker
@@ -460,7 +439,7 @@ make build
 ### Enable Debug Logging
 
 ```bash
-./bin/nsdigup.sh --log-level debug
+./nsdigup.sh --log-level debug
 ```
 
 This will show:
