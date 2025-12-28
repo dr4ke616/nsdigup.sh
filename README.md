@@ -24,7 +24,7 @@ Landing page with usage instructions.
 
 **Request:**
 ```bash
-curl -L nsdigup.sh/
+curl -L nsdigup.sh
 ```
 
 **Response:**
@@ -37,26 +37,17 @@ Scan a domain and return results.
 **Request:**
 ```bash
 curl -L nsdigup.sh/example.com
-curl -H "Accept: application/json" -L nsdigup.sh/example.com
+```
+
+With response JSON:
+```bash
+curl -L nsdigup.sh/example.com -H "Accept: application/json"
 ```
 
 **Response:**
 - `200 OK` - Scan completed (ANSI or JSON based on Accept header)
 - `400 Bad Request` - Invalid domain format
 - `500 Internal Server Error` - Scan failure
-
-### `GET /health`
-
-Health check endpoint for load balancers and monitoring.
-
-**Request:**
-```bash
-curl -L nsdigup.sh/health
-```
-
-**Response:**
-- `200 OK` - Service is healthy
-- `{ "status": "ok" }`
 
 ## Quick Start
 
