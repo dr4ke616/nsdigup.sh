@@ -68,11 +68,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
 
-    Deploy:
-      if: github.ref_type == 'tag'
-      needs: Build
-      runs-on: ubuntu-latest
-      steps:
-        - name: Trigger Render Deployment
-          run: |
-            curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+  Deploy:
+    if: github.ref_type == 'tag'
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deployment
+        run: |
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
