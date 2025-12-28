@@ -60,6 +60,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.ServeHome(w, r)
 	case isHealthPath(path):
 		h.ServeHealth(w, r)
+	case isFaviconPath(path):
+		http.NotFound(w, r)
 	case isDomainPath(path):
 		h.ServeDomain(w, r)
 	default:
@@ -110,4 +112,8 @@ func isRootPath(path string) bool {
 
 func isHealthPath(path string) bool {
 	return path == "/health"
+}
+
+func isFaviconPath(path string) bool {
+	return path == "/favicon.ico"
 }
