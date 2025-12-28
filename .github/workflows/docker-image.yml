@@ -99,4 +99,4 @@ jobs:
           ENCODED_URL=$(printf %s "$IMAGE_URL" | jq -sRr @uri)
 
           # Trigger deployment with imgURL query parameter
-          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}?imgURL=${ENCODED_URL}"
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}&imgURL=${ENCODED_URL}"
