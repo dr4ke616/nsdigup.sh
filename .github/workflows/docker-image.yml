@@ -73,6 +73,18 @@ jobs:
     needs: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Extract version
+        id: version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Deploying version: ${VERSION}"
+
       - name: Trigger Render Deployment
         run: |
-          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "clearCache": false,
+              "imageUrl": "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.version.outputs.version }}"
+            }'
