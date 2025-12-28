@@ -119,7 +119,7 @@ func (m *MemoryStore) cleanupExpired() {
 
 	for range ticker.C {
 		logger.Get().Debug("cache ttl sweep",
-			slog.Int("storeSize", m.Size()))
+			slog.Int("total_entries", m.Size()))
 
 		m.mutex.Lock()
 		now := time.Now()
