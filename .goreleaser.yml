@@ -57,6 +57,7 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.description=A comprehensive domain health monitoring HTTP service providing instant security and configuration analysis for domains"
     goos: linux
     goarch: amd64
 
@@ -74,6 +75,7 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.description=A comprehensive domain health monitoring HTTP service providing instant security and configuration analysis for domains"
     goos: linux
     goarch: arm64
 
@@ -82,11 +84,15 @@ docker_manifests:
     image_templates:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}-amd64"
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:{{ .Version }}-arm64"
+    annotations:
+      org.opencontainers.image.description: "A comprehensive domain health monitoring HTTP service providing instant security and configuration analysis for domains"
 
   - name_template: "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest"
     image_templates:
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-amd64"
       - "ghcr.io/{{ .Env.GITHUB_REPOSITORY_OWNER }}/{{ .ProjectName }}:latest-arm64"
+    annotations:
+      org.opencontainers.image.description: "A comprehensive domain health monitoring HTTP service providing instant security and configuration analysis for domains"
 
 release:
   draft: false
