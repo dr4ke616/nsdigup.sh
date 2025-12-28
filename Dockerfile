@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-LABEL org.opencontainers.image.description="A comprehensive domain health monitoring HTTP service providing instant security and configuration analysis for domains"
+LABEL org.opencontainers.image.description "A comprehensive domain health monitoring HTTP service providing instant security and configuration analysis for domains"
 
 # Install ca-certificates for HTTPS requests
 RUN apk --no-cache add ca-certificates tzdata
