@@ -24,7 +24,7 @@ Landing page with usage instructions.
 
 **Request:**
 ```bash
-curl http://localhost:8080/
+curl -L nsdigup.sh/
 ```
 
 **Response:**
@@ -36,8 +36,8 @@ Scan a domain and return results.
 
 **Request:**
 ```bash
-curl http://localhost:8080/example.com
-curl -H "Accept: application/json" http://localhost:8080/example.com
+curl -L nsdigup.sh/example.com
+curl -H "Accept: application/json" -L nsdigup.sh/example.com
 ```
 
 **Response:**
@@ -51,7 +51,7 @@ Health check endpoint for load balancers and monitoring.
 
 **Request:**
 ```bash
-curl http://localhost:8080/health
+curl -L nsdigup.sh/health
 ```
 
 **Response:**
