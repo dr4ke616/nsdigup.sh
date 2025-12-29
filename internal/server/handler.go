@@ -13,11 +13,23 @@ import (
 	"nsdigup/internal/scanner"
 )
 
+type scannerHolder struct {
+	scanner.Scanner
+}
+
+type cacheHolder struct {
+	cache.Store
+}
+
+type rendererHolder struct {
+	renderer.Renderer
+}
+
 type Handler struct {
-	scanner      *scanner.Scanner
-	cache        *cache.Store
-	jsonRenderer *renderer.Renderer
-	ansiRenderer *renderer.Renderer
+	scanner      *scannerHolder
+	cache        *cacheHolder
+	jsonRenderer *rendererHolder
+	ansiRenderer *rendererHolder
 	config       *config.Config
 	logger       *slog.Logger
 }
@@ -42,50 +54,46 @@ func NewHandler(cfg *config.Config) *Handler {
 			slog.String("mode", string(cfg.Cache.Mode)))
 	}
 
-	scannerImpl := scanner.Scanner(scanner.NewScanner())
-	jsonRenderer := renderer.Renderer(renderer.NewJSONRenderer())
-	ansiRenderer := renderer.Renderer(renderer.NewANSIRenderer())
-
 	return &Handler{
-		scanner:      &scannerImpl,
-		cache:        &store,
-		jsonRenderer: &jsonRenderer,
-		ansiRenderer: &ansiRenderer,
+		scanner:      &scannerHolder{Scanner: scanner.NewScanner()},
+		cache:        &cacheHolder{Store: store},
+		jsonRenderer: &rendererHolder{Renderer: renderer.NewJSONRenderer()},
+		ansiRenderer: &rendererHolder{Renderer: renderer.NewANSIRenderer()},
 		config:       cfg,
 		logger:       log,
 	}
 }
 
 func (h *Handler) SetScanner(sc scanner.Scanner) {
-	h.scanner = &sc
+	h.scanner = &scannerHolder{Scanner: sc}
 }
 
 func (h *Handler) getScanner() scanner.Scanner {
-	if h.scanner == nil {
+	if h.scanner == nil || h.scanner.Scanner == nil {
 		return nil
 	}
-	return *h.scanner
+	return h.scanner.Scanner
 }
 
 func (h *Handler) getCache() cache.Store {
-	if h.cache == nil {
+	if h.cache == nil || h.cache.Store == nil {
 		return nil
 	}
-	return *h.cache
+	return h.cache.Store
 }
 
 func (h *Handler) getJSONRenderer() renderer.Renderer {
-	if h.jsonRenderer == nil {
+	if h.jsonRenderer == nil || h.jsonRenderer.Renderer == nil {
 		return nil
 	}
-	return *h.jsonRenderer
+	return h.jsonRenderer.Renderer
 }
 
 func (h *Handler) getANSIRenderer() renderer.Renderer {
-	if h.ansiRenderer == nil {
+	if h.ansiRenderer == nil || h.ansiRenderer.Renderer == nil {
 		return nil
 	}
-	return *h.ansiRenderer
+	return h.ansiRenderer.Renderer
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
