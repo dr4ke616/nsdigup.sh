@@ -14,10 +14,10 @@ import (
 )
 
 type Handler struct {
-	scanner      scanner.Scanner
-	cache        cache.Store
-	jsonRenderer renderer.Renderer
-	ansiRenderer renderer.Renderer
+	scanner      *scanner.Scanner
+	cache        *cache.Store
+	jsonRenderer *renderer.Renderer
+	ansiRenderer *renderer.Renderer
 	config       *config.Config
 	logger       *slog.Logger
 }
@@ -42,14 +42,50 @@ func NewHandler(cfg *config.Config) *Handler {
 			slog.String("mode", string(cfg.Cache.Mode)))
 	}
 
+	scannerImpl := scanner.Scanner(scanner.NewScanner())
+	jsonRenderer := renderer.Renderer(renderer.NewJSONRenderer())
+	ansiRenderer := renderer.Renderer(renderer.NewANSIRenderer())
+
 	return &Handler{
-		scanner:      scanner.NewScanner(),
-		cache:        store,
-		jsonRenderer: renderer.NewJSONRenderer(),
-		ansiRenderer: renderer.NewANSIRenderer(),
+		scanner:      &scannerImpl,
+		cache:        &store,
+		jsonRenderer: &jsonRenderer,
+		ansiRenderer: &ansiRenderer,
 		config:       cfg,
 		logger:       log,
 	}
+}
+
+func (h *Handler) SetScanner(sc scanner.Scanner) {
+	h.scanner = &sc
+}
+
+func (h *Handler) getScanner() scanner.Scanner {
+	if h.scanner == nil {
+		return nil
+	}
+	return *h.scanner
+}
+
+func (h *Handler) getCache() cache.Store {
+	if h.cache == nil {
+		return nil
+	}
+	return *h.cache
+}
+
+func (h *Handler) getJSONRenderer() renderer.Renderer {
+	if h.jsonRenderer == nil {
+		return nil
+	}
+	return *h.jsonRenderer
+}
+
+func (h *Handler) getANSIRenderer() renderer.Renderer {
+	if h.ansiRenderer == nil {
+		return nil
+	}
+	return *h.ansiRenderer
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

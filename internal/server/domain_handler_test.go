@@ -50,7 +50,7 @@ func TestHandler_CacheHit(t *testing.T) {
 		},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// First request - should hit scanner
 	req1 := httptest.NewRequest("GET", "/example.com", nil)
@@ -101,7 +101,7 @@ func TestHandler_CacheMiss(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Millisecond},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// First request
 	req1 := httptest.NewRequest("GET", "/example.com", nil)
@@ -136,7 +136,7 @@ func TestHandler_MultipleDomains(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	domains := []string{"google.com", "github.com", "example.com"}
 
@@ -183,7 +183,7 @@ func TestHandler_ScannerError(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	req := httptest.NewRequest("GET", "/example.com", nil)
 	w := httptest.NewRecorder()
@@ -250,7 +250,7 @@ func TestHandler_JSONResponse(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	req := httptest.NewRequest("GET", "/example.com", nil)
 	req.Header.Set("Accept", "application/json")

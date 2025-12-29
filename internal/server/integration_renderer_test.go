@@ -23,7 +23,7 @@ func TestHandler_JSONFormat(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// Test explicit JSON format via Accept header
 	req := httptest.NewRequest("GET", "/json-test.com", nil)
@@ -83,7 +83,7 @@ func TestHandler_ANSIFormat(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// Test default ANSI format (no Accept header)
 	req := httptest.NewRequest("GET", "/ansi-test.com", nil)
@@ -144,7 +144,7 @@ func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	tests := []struct {
 		name           string
@@ -227,7 +227,7 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 		Cache: config.CacheConfig{Mode: config.CacheModeMem, TTL: 1 * time.Hour},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// First request as JSON
 	req1 := httptest.NewRequest("GET", "/cache-format-test.com", nil)

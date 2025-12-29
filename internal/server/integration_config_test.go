@@ -26,7 +26,7 @@ func TestHandler_CacheEnabled(t *testing.T) {
 		},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// First request should hit scanner
 	req1 := httptest.NewRequest("GET", "/cache-enabled-test.com", nil)
@@ -72,7 +72,7 @@ func TestHandler_CacheDisabled(t *testing.T) {
 		},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// First request should hit scanner
 	req1 := httptest.NewRequest("GET", "/cache-disabled-test.com", nil)
@@ -118,7 +118,7 @@ func TestHandler_CacheVeryShortTTL(t *testing.T) {
 		},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	// First request
 	req1 := httptest.NewRequest("GET", "/short-ttl-test.com", nil)
@@ -175,8 +175,8 @@ func TestHandler_ConfigValidation_CacheStoreType(t *testing.T) {
 
 			// Check cache size behavior to determine store type
 			// NoOpStore always returns size 0, MemoryStore tracks actual size
-			handler.cache.Set("test", &models.Report{Target: "test"})
-			size := handler.cache.Size()
+			handler.getCache().Set("test", &models.Report{Target: "test"})
+			size := handler.getCache().Size()
 
 			if tt.expectNoOp && size != 0 {
 				t.Error("Expected NoOpStore (size should always be 0)")
@@ -203,8 +203,8 @@ func TestHandler_CacheConfigZeroTTL(t *testing.T) {
 	handler := NewHandler(cfg)
 
 	// Verify it uses NoOpStore
-	handler.cache.Set("test", &models.Report{Target: "test"})
-	if handler.cache.Size() != 0 {
+	handler.getCache().Set("test", &models.Report{Target: "test"})
+	if handler.getCache().Size() != 0 {
 		t.Error("Expected NoOpStore behavior when cache is disabled")
 	}
 }
@@ -222,7 +222,7 @@ func TestHandler_MultipleDomainsCacheDisabled(t *testing.T) {
 		},
 	}
 	handler := NewHandler(cfg)
-	handler.scanner = mock
+	handler.SetScanner(mock)
 
 	domains := []string{"nocache1.com", "nocache2.com", "nocache3.com"}
 
