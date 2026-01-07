@@ -7,6 +7,8 @@ import (
 
 	"github.com/likexian/whois"
 	whoisparser "github.com/likexian/whois-parser"
+
+	"nsdigup/pkg/models"
 )
 
 // WHOISResult contains the parsed WHOIS information
@@ -60,14 +62,14 @@ func CheckWHOIS(ctx context.Context, domain string, timeout time.Duration) WHOIS
 			}
 		}
 
-		// Calculate days until expiration
+		// Calculate expiration date and days using shared logic
 		var expiresAt time.Time
 		expiresInDays := 0
 		if parsed.Domain != nil && parsed.Domain.ExpirationDate != "" {
 			expiryDate, err := parseDate(parsed.Domain.ExpirationDate)
 			if err == nil {
 				expiresAt = expiryDate
-				expiresInDays = int(time.Until(expiryDate).Hours() / 24)
+				expiresInDays = models.CalculateDaysUntilExpiration(expiryDate)
 			}
 		}
 

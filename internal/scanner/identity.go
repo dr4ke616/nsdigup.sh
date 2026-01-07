@@ -121,6 +121,9 @@ func (i *IdentityScanner) ScanIdentity(ctx context.Context, domain string) (*mod
 		identity.ExpiresInDays = whoisResult.ExpiresInDays
 	}
 
+	// Always calculate status (defaults to Active if no expiration data)
+	identity.Status = models.CalculateExpirationStatus(identity.ExpiresAt)
+
 	if identity.IP == "" && len(errors) > 0 {
 		return identity, fmt.Errorf("DNS resolution failed: %v", errors)
 	}

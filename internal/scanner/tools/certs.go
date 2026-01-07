@@ -15,6 +15,7 @@ import (
 	"golang.org/x/crypto/ocsp"
 
 	"nsdigup/internal/logger"
+	"nsdigup/pkg/models"
 )
 
 // CertInfo contains the certificate details extracted from a TLS connection.
@@ -65,14 +66,12 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 		issuer = cert.Issuer.Organization[0]
 	}
 
-	// Calculate days until expiration
-	expiresInDays := int(time.Until(cert.NotAfter).Hours() / 24)
+	// Calculate expiration status and days using shared logic
+	status := models.CalculateExpirationStatus(cert.NotAfter)
+	expiresInDays := models.CalculateDaysUntilExpiration(cert.NotAfter)
 
-	status := "Active"
-	if time.Now().After(cert.NotAfter) {
-		status = "Expired"
-	} else if time.Now().Add(30 * 24 * time.Hour).After(cert.NotAfter) {
-		status = "Expiring Soon"
+	// Log if certificate is expiring soon
+	if status == models.StatusExpiringSoon {
 		logger.Get().Debug("certificate expiring soon",
 			slog.String("domain", domain),
 			slog.String("common_name", cert.Subject.CommonName),

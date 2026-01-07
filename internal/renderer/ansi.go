@@ -49,6 +49,23 @@ func (a *ANSIRenderer) Render(w io.Writer, report *models.Report) error {
 func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) error {
 	fmt.Fprintf(w, "[ IDENTITY ]\n")
 
+	// Always display status (consistent with certificates section)
+	if identity.Status != "" {
+		if identity.Status == models.StatusExpired || identity.Status == models.StatusExpiringSoon {
+			fmt.Fprintf(w, "  ⚠ Status: %s\n", identity.Status)
+		} else {
+			fmt.Fprintf(w, "  Status: %s\n", identity.Status)
+		}
+	}
+
+	if !identity.ExpiresAt.IsZero() {
+		expiryDate := identity.ExpiresAt.Format("2006-01-02")
+		fmt.Fprintf(w, "  Domain Expires: %s (%d days)\n", expiryDate, identity.ExpiresInDays)
+	} else if identity.Registrar != "" {
+		// WHOIS was attempted but expiry date couldn't be parsed
+		fmt.Fprintf(w, "  Domain Expires: Unknown\n")
+	}
+
 	if identity.IP != "" {
 		fmt.Fprintf(w, "  IP Address: %s\n", identity.IP)
 	}
@@ -67,14 +84,6 @@ func (a *ANSIRenderer) renderIdentity(w io.Writer, identity *models.Identity) er
 
 	if identity.Owner != "" {
 		fmt.Fprintf(w, "  Owner: %s\n", identity.Owner)
-	}
-
-	if !identity.ExpiresAt.IsZero() {
-		expiryDate := identity.ExpiresAt.Format("2006-01-02")
-		fmt.Fprintf(w, "  Domain Expires: %s (%d days)\n", expiryDate, identity.ExpiresInDays)
-	} else if identity.Registrar != "" {
-		// WHOIS was attempted but expiry date couldn't be parsed
-		fmt.Fprintf(w, "  Domain Expires: Unknown\n")
 	}
 
 	// DNSSEC
@@ -111,6 +120,18 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 	// Current certificate
 	if certs.CommonName != "" {
 		fmt.Fprintf(w, "  Current Certificate:\n")
+		// Add warning symbol for expired or expiring certificates
+		if certs.Status == models.StatusExpired || certs.Status == models.StatusExpiringSoon {
+			fmt.Fprintf(w, "    ⚠ Status: %s\n", certs.Status)
+		} else {
+			fmt.Fprintf(w, "    Status: %s\n", certs.Status)
+		}
+
+		if !certs.ExpiresAt.IsZero() {
+			expiry := certs.ExpiresAt.Format("2006-01-02")
+			fmt.Fprintf(w, "    Cert Expires: %s (%d days)\n", expiry, certs.ExpiresInDays)
+		}
+
 		fmt.Fprintf(w, "    Common Name: %s", certs.CommonName)
 
 		if certs.IsWildcard {
@@ -120,13 +141,6 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 
 		if certs.Issuer != "" {
 			fmt.Fprintf(w, "    Issuer: %s\n", certs.Issuer)
-		}
-
-		// Add warning symbol for expired or expiring certificates
-		if certs.Status == "Expired" || certs.Status == "Expiring Soon" {
-			fmt.Fprintf(w, "    ⚠ Status: %s\n", certs.Status)
-		} else {
-			fmt.Fprintf(w, "    Status: %s\n", certs.Status)
 		}
 
 		if certs.IsSelfSigned {
@@ -157,10 +171,6 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 			}
 		}
 
-		if !certs.ExpiresAt.IsZero() {
-			expiry := certs.ExpiresAt.Format("2006-01-02")
-			fmt.Fprintf(w, "    Cert Expires: %s (%d days)\n", expiry, certs.ExpiresInDays)
-		}
 	} else {
 		fmt.Fprintf(w, "  No certificate information available\n")
 	}

@@ -16,6 +16,7 @@ type Identity struct {
 	Owner         string    `json:"owner"`
 	ExpiresAt     time.Time `json:"expires_at,omitempty"`
 	ExpiresInDays int       `json:"expires_in_days,omitempty"`
+	Status        string    `json:"status,omitempty"`
 	Nameservers   []string  `json:"nameservers"`
 
 	// DNSSEC validation
