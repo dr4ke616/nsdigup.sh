@@ -38,7 +38,8 @@ func main() {
 	}
 
 	serviceHandler := server.NewHandler(cfg).Router()
-	wrappedHandler := server.LoggingMiddleware(serviceHandler)
+	withLogging := server.LoggingMiddleware(serviceHandler)
+	wrappedHandler := server.RequestIDMiddleware(withLogging)
 
 	// Structured startup logs
 	log.Info("application starting",

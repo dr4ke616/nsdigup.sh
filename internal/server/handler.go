@@ -19,7 +19,6 @@ type Handler struct {
 	jsonRenderer renderer.Renderer
 	ansiRenderer renderer.Renderer
 	config       *config.Config
-	logger       *slog.Logger
 }
 
 func NewHandler(cfg *config.Config) *Handler {
@@ -48,7 +47,6 @@ func NewHandler(cfg *config.Config) *Handler {
 		jsonRenderer: renderer.NewJSONRenderer(),
 		ansiRenderer: renderer.NewANSIRenderer(),
 		config:       cfg,
-		logger:       log,
 	}
 }
 

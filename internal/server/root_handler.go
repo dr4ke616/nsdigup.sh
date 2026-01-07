@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"nsdigup/internal/json"
 	"strings"
 
 	"nsdigup/internal/banner"
+	"nsdigup/internal/json"
+	"nsdigup/internal/logger"
 )
 
 // ServeHome handles the root "/" route
 func (h *Handler) ServeHome(w http.ResponseWriter, r *http.Request) {
+	log := GetLoggerFromContext(r.Context(), logger.Get())
+
 	format := h.getOutputFormat(r)
-	h.logger.Debug("serving home page", slog.String("format", format.String()))
+	log.Debug("serving home page", slog.String("format", format.String()))
 
 	switch format {
 	case OutputFormatANSI:
