@@ -9,7 +9,4 @@ import (
 type Store interface {
 	Get(ctx context.Context, domain string) (*models.Report, bool)
 	Set(ctx context.Context, domain string, report *models.Report)
-	Delete(domain string)
-	Clear()
-	Size() int
 }

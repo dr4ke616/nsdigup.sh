@@ -41,36 +41,6 @@ func TestNoOpStore_Set(t *testing.T) {
 	}
 }
 
-func TestNoOpStore_Delete(t *testing.T) {
-	store := NewNoOpStore()
-
-	// Should not panic or error
-	store.Delete("example.com")
-}
-
-func TestNoOpStore_Clear(t *testing.T) {
-	store := NewNoOpStore()
-
-	// Should not panic or error
-	store.Clear()
-}
-
-func TestNoOpStore_Size(t *testing.T) {
-	store := NewNoOpStore()
-
-	if store.Size() != 0 {
-		t.Errorf("NoOpStore size should always be 0, got %d", store.Size())
-	}
-
-	// Even after operations, size should remain 0
-	report := &models.Report{Target: "test.com"}
-	store.Set(context.Background(), "test.com", report)
-
-	if store.Size() != 0 {
-		t.Errorf("NoOpStore size should remain 0 after operations, got %d", store.Size())
-	}
-}
-
 func TestNoOpStore_Interface(t *testing.T) {
 	var store Store = NewNoOpStore()
 

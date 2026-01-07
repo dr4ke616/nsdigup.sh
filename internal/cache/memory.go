@@ -97,21 +97,7 @@ func (m *MemoryStore) Set(ctx context.Context, domain string, report *models.Rep
 		slog.Int("total_entries", len(m.entries)))
 }
 
-func (m *MemoryStore) Delete(domain string) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	delete(m.entries, domain)
-}
-
-func (m *MemoryStore) Clear() {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	m.entries = make(map[string]*cacheEntry)
-}
-
-func (m *MemoryStore) Size() int {
+func (m *MemoryStore) size() int {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
@@ -124,7 +110,7 @@ func (m *MemoryStore) cleanupExpired() {
 
 	for range ticker.C {
 		logger.Get().Debug("cache ttl sweep",
-			slog.Int("total_entries", m.Size()))
+			slog.Int("total_entries", m.size()))
 
 		m.mutex.Lock()
 		now := time.Now()
