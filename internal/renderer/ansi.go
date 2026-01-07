@@ -122,7 +122,16 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 			fmt.Fprintf(w, "    Issuer: %s\n", certs.Issuer)
 		}
 
-		fmt.Fprintf(w, "    Status: %s\n", certs.Status)
+		// Add warning symbol for expired or expiring certificates
+		if certs.Status == "Expired" || certs.Status == "Expiring Soon" {
+			fmt.Fprintf(w, "    ⚠ Status: %s\n", certs.Status)
+		} else {
+			fmt.Fprintf(w, "    Status: %s\n", certs.Status)
+		}
+
+		if certs.IsSelfSigned {
+			fmt.Fprintf(w, "    ⚠ Self-Signed Certificate\n")
+		}
 
 		if !certs.ExpiresAt.IsZero() {
 			expiry := certs.ExpiresAt.Format("2006-01-02")

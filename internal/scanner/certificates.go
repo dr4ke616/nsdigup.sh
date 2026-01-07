@@ -73,6 +73,7 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 	certData.ExpiresInDays = certDetails.ExpiresInDays
 	certData.Status = certDetails.Status
 	certData.IsWildcard = certDetails.IsWildcard
+	certData.IsSelfSigned = certDetails.IsSelfSigned
 
 	// Set TLS analysis results
 	certData.TLSVersions = tlsResult.TLSVersions

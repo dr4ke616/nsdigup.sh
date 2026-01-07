@@ -35,6 +35,7 @@ type Certificates struct {
 	ExpiresInDays int       `json:"expires_in_days"`
 	Status        string    `json:"status"`
 	IsWildcard    bool      `json:"is_wildcard"`
+	IsSelfSigned  bool      `json:"is_self_signed"`
 
 	// TLS protocol and cipher analysis
 	TLSVersions      []string `json:"tls_versions,omitempty"`

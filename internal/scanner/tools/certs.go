@@ -19,6 +19,7 @@ type CertInfo struct {
 	ExpiresInDays int
 	Status        string
 	IsWildcard    bool
+	IsSelfSigned  bool
 }
 
 // GetCertDetails retrieves and analyzes the TLS certificate for the given domain.
@@ -30,7 +31,8 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 	}
 
 	conn, err := tls.DialWithDialer(dialer, "tcp", fmt.Sprintf("%s:443", domain), &tls.Config{
-		ServerName: domain,
+		ServerName:         domain,
+		InsecureSkipVerify: true, // Allow connection to inspect expired certs
 	})
 	if err != nil {
 		return CertInfo{}, fmt.Errorf("TLS connection failed: %w", err)
@@ -75,6 +77,9 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 		}
 	}
 
+	// Check if certificate is self-signed
+	isSelfSigned := cert.Issuer.String() == cert.Subject.String()
+
 	return CertInfo{
 		Issuer:        issuer,
 		CommonName:    cert.Subject.CommonName,
@@ -82,5 +87,6 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 		ExpiresInDays: expiresInDays,
 		Status:        status,
 		IsWildcard:    isWildcard,
+		IsSelfSigned:  isSelfSigned,
 	}, nil
 }
