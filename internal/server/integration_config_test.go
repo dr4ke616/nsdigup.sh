@@ -31,7 +31,7 @@ func TestHandler_CacheEnabled(t *testing.T) {
 	// First request should hit scanner
 	req1 := httptest.NewRequest("GET", "/cache-enabled-test.com", nil)
 	w1 := httptest.NewRecorder()
-	handler.ServeHTTP(w1, req1)
+	handler.Router().ServeHTTP(w1, req1)
 
 	if w1.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w1.Code)
@@ -44,7 +44,7 @@ func TestHandler_CacheEnabled(t *testing.T) {
 	// Second request should hit cache
 	req2 := httptest.NewRequest("GET", "/cache-enabled-test.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	if w2.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w2.Code)
@@ -77,7 +77,7 @@ func TestHandler_CacheDisabled(t *testing.T) {
 	// First request should hit scanner
 	req1 := httptest.NewRequest("GET", "/cache-disabled-test.com", nil)
 	w1 := httptest.NewRecorder()
-	handler.ServeHTTP(w1, req1)
+	handler.Router().ServeHTTP(w1, req1)
 
 	if w1.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w1.Code)
@@ -90,7 +90,7 @@ func TestHandler_CacheDisabled(t *testing.T) {
 	// Second request should also hit scanner (no caching)
 	req2 := httptest.NewRequest("GET", "/cache-disabled-test.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	if w2.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w2.Code)
@@ -123,7 +123,7 @@ func TestHandler_CacheVeryShortTTL(t *testing.T) {
 	// First request
 	req1 := httptest.NewRequest("GET", "/short-ttl-test.com", nil)
 	w1 := httptest.NewRecorder()
-	handler.ServeHTTP(w1, req1)
+	handler.Router().ServeHTTP(w1, req1)
 
 	if mock.calls != 1 {
 		t.Errorf("Expected 1 scanner call, got %d", mock.calls)
@@ -135,7 +135,7 @@ func TestHandler_CacheVeryShortTTL(t *testing.T) {
 	// Second request should miss cache and hit scanner again
 	req2 := httptest.NewRequest("GET", "/short-ttl-test.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	// Should be 2 scanner calls (cache expired)
 	if mock.calls != 2 {
@@ -231,12 +231,12 @@ func TestHandler_MultipleDomainsCacheDisabled(t *testing.T) {
 		// First request
 		req1 := httptest.NewRequest("GET", "/"+domain, nil)
 		w1 := httptest.NewRecorder()
-		handler.ServeHTTP(w1, req1)
+		handler.Router().ServeHTTP(w1, req1)
 
 		// Second request
 		req2 := httptest.NewRequest("GET", "/"+domain, nil)
 		w2 := httptest.NewRecorder()
-		handler.ServeHTTP(w2, req2)
+		handler.Router().ServeHTTP(w2, req2)
 
 		if w1.Code != http.StatusOK || w2.Code != http.StatusOK {
 			t.Errorf("Expected status 200 for domain %s", domain)

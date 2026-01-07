@@ -55,7 +55,7 @@ func TestHandler_CacheHit(t *testing.T) {
 	// First request - should hit scanner
 	req1 := httptest.NewRequest("GET", "/example.com", nil)
 	w1 := httptest.NewRecorder()
-	handler.ServeHTTP(w1, req1)
+	handler.Router().ServeHTTP(w1, req1)
 
 	if w1.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w1.Code)
@@ -68,7 +68,7 @@ func TestHandler_CacheHit(t *testing.T) {
 	// Second request - should hit cache
 	req2 := httptest.NewRequest("GET", "/example.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	if w2.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w2.Code)
@@ -106,7 +106,7 @@ func TestHandler_CacheMiss(t *testing.T) {
 	// First request
 	req1 := httptest.NewRequest("GET", "/example.com", nil)
 	w1 := httptest.NewRecorder()
-	handler.ServeHTTP(w1, req1)
+	handler.Router().ServeHTTP(w1, req1)
 
 	if mock.calls != 1 {
 		t.Errorf("Expected 1 scanner call, got %d", mock.calls)
@@ -118,7 +118,7 @@ func TestHandler_CacheMiss(t *testing.T) {
 	// Second request - should miss cache and hit scanner again
 	req2 := httptest.NewRequest("GET", "/example.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	if mock.calls != 2 {
 		t.Errorf("Expected 2 scanner calls (cache miss), got %d", mock.calls)
@@ -144,7 +144,7 @@ func TestHandler_MultipleDomains(t *testing.T) {
 	for _, domain := range domains {
 		req := httptest.NewRequest("GET", "/"+domain, nil)
 		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, req)
+		handler.Router().ServeHTTP(w, req)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("Expected status 200 for %s, got %d", domain, w.Code)
@@ -160,7 +160,7 @@ func TestHandler_MultipleDomains(t *testing.T) {
 	for _, domain := range domains {
 		req := httptest.NewRequest("GET", "/"+domain, nil)
 		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, req)
+		handler.Router().ServeHTTP(w, req)
 
 		if w.Code != http.StatusOK {
 			t.Errorf("Expected status 200 for %s, got %d", domain, w.Code)
@@ -187,7 +187,7 @@ func TestHandler_ScannerError(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/example.com", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusInternalServerError {
 		t.Errorf("Expected status 500 on scanner error, got %d", w.Code)
@@ -196,7 +196,7 @@ func TestHandler_ScannerError(t *testing.T) {
 	// Error should not be cached - try again
 	req2 := httptest.NewRequest("GET", "/example.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	if mock.calls != 2 {
 		t.Errorf("Expected 2 scanner calls (error not cached), got %d", mock.calls)
@@ -213,7 +213,7 @@ func TestHandler_EmptyDomain(t *testing.T) {
 	// "/" is now the home route, should return 200
 	req := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200 for home route /, got %d", w.Code)
@@ -222,7 +222,7 @@ func TestHandler_EmptyDomain(t *testing.T) {
 	// "http://localhost/" is also treated as home route
 	req2 := httptest.NewRequest("GET", "http://localhost/", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	if w2.Code != http.StatusOK {
 		t.Errorf("Expected status 200 for home route http://localhost/, got %d", w2.Code)
@@ -255,7 +255,7 @@ func TestHandler_JSONResponse(t *testing.T) {
 	req := httptest.NewRequest("GET", "/example.com", nil)
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)

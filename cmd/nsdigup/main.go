@@ -37,8 +37,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create handler with configuration and wrap it using a logging middleware
-	handler := server.LoggingMiddleware(server.NewHandler(cfg))
+	serviceHandler := server.NewHandler(cfg).Router()
+	wrappedHandler := server.LoggingMiddleware(serviceHandler)
 
 	// Structured startup logs
 	log.Info("application starting",
@@ -55,7 +55,7 @@ func main() {
 
 	log.Info("starting http server", slog.String("address", cfg.App.Address()))
 
-	if err := http.ListenAndServe(cfg.App.Address(), handler); err != nil {
+	if err := http.ListenAndServe(cfg.App.Address(), wrappedHandler); err != nil {
 		log.Error("server failed", slog.String("error", err.Error()))
 		os.Exit(1)
 	}

@@ -29,7 +29,7 @@ func TestHandler_JSONFormat(t *testing.T) {
 	req := httptest.NewRequest("GET", "/json-test.com", nil)
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -88,7 +88,7 @@ func TestHandler_ANSIFormat(t *testing.T) {
 	// Test default ANSI format (no Accept header)
 	req := httptest.NewRequest("GET", "/ansi-test.com", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -190,7 +190,7 @@ func TestHandler_AcceptHeaderFormatDetection(t *testing.T) {
 			req.Header.Set("Accept", tt.acceptHeader)
 			w := httptest.NewRecorder()
 
-			handler.ServeHTTP(w, req)
+			handler.Router().ServeHTTP(w, req)
 
 			if w.Code != http.StatusOK {
 				t.Errorf("Expected status 200, got %d", w.Code)
@@ -233,7 +233,7 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	req1 := httptest.NewRequest("GET", "/cache-format-test.com", nil)
 	req1.Header.Set("Accept", "application/json")
 	w1 := httptest.NewRecorder()
-	handler.ServeHTTP(w1, req1)
+	handler.Router().ServeHTTP(w1, req1)
 
 	if mock.calls != 1 {
 		t.Errorf("Expected 1 scanner call, got %d", mock.calls)
@@ -242,7 +242,7 @@ func TestHandler_CacheWithDifferentFormats(t *testing.T) {
 	// Second request as ANSI - should hit cache but render differently
 	req2 := httptest.NewRequest("GET", "/cache-format-test.com", nil)
 	w2 := httptest.NewRecorder()
-	handler.ServeHTTP(w2, req2)
+	handler.Router().ServeHTTP(w2, req2)
 
 	// Should still be only 1 scanner call (cache hit)
 	if mock.calls != 1 {

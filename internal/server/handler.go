@@ -52,21 +52,29 @@ func NewHandler(cfg *config.Config) *Handler {
 	}
 }
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
+func (h *Handler) Router() http.Handler {
+	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /", h.serveRoot)
+	mux.HandleFunc("GET /health", h.ServeHealth)
+	mux.HandleFunc("GET /favicon.ico", h.serveMissingFavicon)
+
+	return mux
+}
+
+func (h *Handler) serveRoot(w http.ResponseWriter, r *http.Request) {
 	switch {
-	case isRootPath(path):
-		h.ServeHome(w, r)
-	case isHealthPath(path):
-		h.ServeHealth(w, r)
-	case isFaviconPath(path):
-		http.NotFound(w, r)
-	case isDomainPath(path):
+	case isDomainPath(r.URL.Path):
 		h.ServeDomain(w, r)
+	case r.URL.Path == "/":
+		h.ServeHome(w, r)
 	default:
 		http.NotFound(w, r)
 	}
+}
+
+func (h *Handler) serveMissingFavicon(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
 }
 
 type OutputFormat int
@@ -97,23 +105,14 @@ func (h *Handler) getOutputFormat(r *http.Request) OutputFormat {
 	return OutputFormatANSI
 }
 
+// domainRegex validates domain names and optional ports
+// Matches: example.com, sub.example.com, example.com:8080, 192.168.1.1
+var domainRegex = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\:[0-9]+)?$`)
+
 func isDomainPath(path string) bool {
 	domain := strings.TrimPrefix(path, "/")
 	if domain == "" {
 		return false
 	}
-	domainRegex := regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9\-\.]*[a-zA-Z0-9])?(\:[0-9]+)?$`)
 	return domainRegex.MatchString(domain)
-}
-
-func isRootPath(path string) bool {
-	return path == "/"
-}
-
-func isHealthPath(path string) bool {
-	return path == "/health"
-}
-
-func isFaviconPath(path string) bool {
-	return path == "/favicon.ico"
 }

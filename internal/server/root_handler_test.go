@@ -26,7 +26,7 @@ func TestHandler_Home_ANSI(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -67,7 +67,7 @@ func TestHandler_Home_JSON(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -127,7 +127,7 @@ func TestHandler_Home_AcceptHeader(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 
-			handler.ServeHTTP(w, req)
+			handler.Router().ServeHTTP(w, req)
 
 			if w.Code != http.StatusOK {
 				t.Errorf("Expected status 200, got %d", w.Code)
@@ -168,7 +168,7 @@ func TestHandler_Home_CacheDisabled(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -191,7 +191,7 @@ func TestHandler_Home_CacheEnabled(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", w.Code)
@@ -211,7 +211,7 @@ func TestHandler_Home_CustomPort(t *testing.T) {
 
 	req := httptest.NewRequest("GET", "/", nil)
 	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
+	handler.Router().ServeHTTP(w, req)
 
 	body := w.Body.String()
 
