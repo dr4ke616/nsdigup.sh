@@ -22,11 +22,6 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-// contextKey is an unexported type to prevent collisions with context keys from other packages
-type contextKey string
-
-const loggerContextKey contextKey = "logger"
-
 // generateRequestID creates an 8-character hexadecimal request ID using crypto/rand
 func generateRequestID() (string, error) {
 	b := make([]byte, 4) // 4 bytes = 8 hex characters
@@ -62,20 +57,11 @@ func RequestIDMiddleware(next http.Handler) http.Handler {
 		childLogger := logger.Get().With(slog.String("request_id", requestID))
 
 		// Inject logger into request context
-		ctx := context.WithValue(r.Context(), loggerContextKey, childLogger)
+		ctx := context.WithValue(r.Context(), logger.LoggerContextKey, childLogger)
 
 		// Continue with updated context
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-// GetLoggerFromContext retrieves the logger from the request context.
-// If no logger is found in the context, it returns the provided fallback logger.
-func GetLoggerFromContext(ctx context.Context, fallback *slog.Logger) *slog.Logger {
-	if logger, ok := ctx.Value(loggerContextKey).(*slog.Logger); ok {
-		return logger
-	}
-	return fallback
 }
 
 // LoggingMiddleware logs HTTP requests with method, path, status, duration, and client details
@@ -93,7 +79,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Use context logger (includes request_id automatically)
-		log := GetLoggerFromContext(r.Context(), logger.Get())
+		log := logger.GetFromContext(r.Context(), logger.Get())
 
 		log.Info("http request",
 			slog.String("method", r.Method),

@@ -59,7 +59,7 @@ func TestRequestIDMiddleware_GeneratesID(t *testing.T) {
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Verify logger is in context
-		log := GetLoggerFromContext(r.Context(), nil)
+		log := logger.GetFromContext(r.Context(), nil)
 		if log == nil {
 			t.Error("Expected logger in context, got nil")
 		}
@@ -119,9 +119,9 @@ func TestGetLoggerFromContext(t *testing.T) {
 
 	t.Run("Returns context logger when present", func(t *testing.T) {
 		contextLogger := logger.Get().With(slog.String("test", "value"))
-		ctx := context.WithValue(context.Background(), loggerContextKey, contextLogger)
+		ctx := context.WithValue(context.Background(), logger.LoggerContextKey, contextLogger)
 
-		result := GetLoggerFromContext(ctx, fallbackLogger)
+		result := logger.GetFromContext(ctx, fallbackLogger)
 		if result != contextLogger {
 			t.Error("Expected context logger, got different logger")
 		}
@@ -130,16 +130,16 @@ func TestGetLoggerFromContext(t *testing.T) {
 	t.Run("Returns fallback when context empty", func(t *testing.T) {
 		ctx := context.Background()
 
-		result := GetLoggerFromContext(ctx, fallbackLogger)
+		result := logger.GetFromContext(ctx, fallbackLogger)
 		if result != fallbackLogger {
 			t.Error("Expected fallback logger when context is empty")
 		}
 	})
 
 	t.Run("Returns fallback when context has wrong type", func(t *testing.T) {
-		ctx := context.WithValue(context.Background(), loggerContextKey, "not a logger")
+		ctx := context.WithValue(context.Background(), logger.LoggerContextKey, "not a logger")
 
-		result := GetLoggerFromContext(ctx, fallbackLogger)
+		result := logger.GetFromContext(ctx, fallbackLogger)
 		if result != fallbackLogger {
 			t.Error("Expected fallback logger when context value is wrong type")
 		}
@@ -183,7 +183,7 @@ func TestRequestIDMiddleware_ContextPropagation(t *testing.T) {
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Extract logger from context
-		contextLogger = GetLoggerFromContext(r.Context(), nil)
+		contextLogger = logger.GetFromContext(r.Context(), nil)
 		w.WriteHeader(http.StatusOK)
 	})
 

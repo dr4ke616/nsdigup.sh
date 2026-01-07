@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -55,4 +56,19 @@ func Get() *slog.Logger {
 		defaultLogger = slog.Default()
 	}
 	return defaultLogger
+}
+
+// ContextKey is an unexported type to prevent collisions with context keys from other packages
+type ContextKey string
+
+// LoggerContextKey is the context key used to store the logger in request contexts
+const LoggerContextKey ContextKey = "logger"
+
+// GetFromContext retrieves the logger from the context.
+// If no logger is found in the context, it returns the provided fallback logger.
+func GetFromContext(ctx context.Context, fallback *slog.Logger) *slog.Logger {
+	if logger, ok := ctx.Value(LoggerContextKey).(*slog.Logger); ok {
+		return logger
+	}
+	return fallback
 }

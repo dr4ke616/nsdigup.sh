@@ -14,7 +14,7 @@ import (
 
 // ServeDomain handles the "/{domain}" route for domain scanning
 func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
-	log := GetLoggerFromContext(r.Context(), logger.Get())
+	log := logger.GetFromContext(r.Context(), logger.Get())
 
 	domain := extractDomain(r.URL.Path)
 	if domain == "" {
@@ -66,7 +66,7 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) writeResponse(w http.ResponseWriter, r *http.Request, report *models.Report, format OutputFormat) {
-	log := GetLoggerFromContext(r.Context(), logger.Get())
+	log := logger.GetFromContext(r.Context(), logger.Get())
 
 	switch format {
 	case OutputFormatANSI:

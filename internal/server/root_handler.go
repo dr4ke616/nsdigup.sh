@@ -13,7 +13,7 @@ import (
 
 // ServeHome handles the root "/" route
 func (h *Handler) ServeHome(w http.ResponseWriter, r *http.Request) {
-	log := GetLoggerFromContext(r.Context(), logger.Get())
+	log := logger.GetFromContext(r.Context(), logger.Get())
 
 	format := h.getOutputFormat(r)
 	log.Debug("serving home page", slog.String("format", format.String()))
