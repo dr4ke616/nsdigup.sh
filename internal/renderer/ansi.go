@@ -133,6 +133,14 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 			fmt.Fprintf(w, "    ⚠ Self-Signed Certificate\n")
 		}
 
+		if certs.IsUntrustedRoot {
+			fmt.Fprintf(w, "    ⚠ Untrusted Root Certificate\n")
+		}
+
+		if certs.IsRevoked {
+			fmt.Fprintf(w, "    ⚠ Certificate Revoked\n")
+		}
+
 		// Hostname validation warnings
 		if certs.IsIPAddress {
 			fmt.Fprintf(w, "    ⚠ Connected via IP Address\n")

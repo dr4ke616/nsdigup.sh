@@ -6,6 +6,7 @@ require (
 	github.com/likexian/whois v1.15.1
 	github.com/likexian/whois-parser v1.24.9
 	github.com/miekg/dns v1.1.57
+	golang.org/x/crypto v0.14.0
 )
 
 require (
