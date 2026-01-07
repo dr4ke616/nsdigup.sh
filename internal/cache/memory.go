@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"log/slog"
 	"sync"
 	"time"
@@ -41,13 +42,15 @@ func NewMemoryStore(ttl time.Duration) *MemoryStore {
 	return store
 }
 
-func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
+func (m *MemoryStore) Get(ctx context.Context, domain string) (*models.Report, bool) {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 
+	log := logger.GetFromContext(ctx, logger.Get())
+
 	entry, exists := m.entries[domain]
 	if !exists {
-		logger.Get().Debug("cache miss",
+		log.Debug("cache miss",
 			slog.String("domain", domain),
 			slog.String("reason", "not_found"))
 		return nil, false
@@ -55,7 +58,7 @@ func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 
 	if entry.isExpired() {
 		age := time.Since(entry.timestamp)
-		logger.Get().Debug("cache miss",
+		log.Debug("cache miss",
 			slog.String("domain", domain),
 			slog.String("reason", "expired"),
 			slog.Duration("age", age))
@@ -69,7 +72,7 @@ func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 	}
 
 	age := time.Since(entry.timestamp)
-	logger.Get().Debug("cache hit",
+	log.Debug("cache hit",
 		slog.String("domain", domain),
 		slog.Duration("age", age),
 		slog.Duration("remaining_ttl", m.ttl-age))
@@ -77,9 +80,11 @@ func (m *MemoryStore) Get(domain string) (*models.Report, bool) {
 	return entry.report, true
 }
 
-func (m *MemoryStore) Set(domain string, report *models.Report) {
+func (m *MemoryStore) Set(ctx context.Context, domain string, report *models.Report) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+
+	log := logger.GetFromContext(ctx, logger.Get())
 
 	m.entries[domain] = &cacheEntry{
 		report:    report,
@@ -87,7 +92,7 @@ func (m *MemoryStore) Set(domain string, report *models.Report) {
 		ttl:       m.ttl,
 	}
 
-	logger.Get().Debug("cache set",
+	log.Debug("cache set",
 		slog.String("domain", domain),
 		slog.Int("total_entries", len(m.entries)))
 }

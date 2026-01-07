@@ -31,7 +31,7 @@ func NewScanner() *ScannerImpl {
 }
 
 func (o *ScannerImpl) Scan(ctx context.Context, domain string) (*models.Report, error) {
-	log := logger.Get()
+	log := logger.GetFromContext(ctx, logger.Get())
 	log.Debug("starting concurrent domain scan", slog.String("domain", domain))
 
 	report := &models.Report{

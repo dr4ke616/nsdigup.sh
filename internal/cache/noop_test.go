@@ -1,5 +1,7 @@
 package cache
 
+import "context"
+
 import (
 	"testing"
 	"time"
@@ -10,7 +12,7 @@ import (
 func TestNoOpStore_Get(t *testing.T) {
 	store := NewNoOpStore()
 
-	report, found := store.Get("example.com")
+	report, found := store.Get(context.Background(), "example.com")
 
 	if found {
 		t.Error("NoOpStore should never return found=true")
@@ -30,10 +32,10 @@ func TestNoOpStore_Set(t *testing.T) {
 	}
 
 	// Should not panic or error
-	store.Set("example.com", report)
+	store.Set(context.Background(), "example.com", report)
 
 	// Should still return cache miss
-	_, found := store.Get("example.com")
+	_, found := store.Get(context.Background(), "example.com")
 	if found {
 		t.Error("NoOpStore should not store anything")
 	}
@@ -62,7 +64,7 @@ func TestNoOpStore_Size(t *testing.T) {
 
 	// Even after operations, size should remain 0
 	report := &models.Report{Target: "test.com"}
-	store.Set("test.com", report)
+	store.Set(context.Background(), "test.com", report)
 
 	if store.Size() != 0 {
 		t.Errorf("NoOpStore size should remain 0 after operations, got %d", store.Size())

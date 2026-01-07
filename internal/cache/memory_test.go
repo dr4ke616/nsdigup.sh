@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"sync"
 	"testing"
 	"time"
@@ -21,16 +22,16 @@ func TestMemoryStore_BasicOperations(t *testing.T) {
 	}
 
 	// Test Get on empty cache
-	_, exists := store.Get(domain)
+	_, exists := store.Get(context.Background(), domain)
 	if exists {
 		t.Error("Expected no entry for domain in empty cache")
 	}
 
 	// Test Set
-	store.Set(domain, report)
+	store.Set(context.Background(), domain, report)
 
 	// Test Get after Set
-	cachedReport, exists := store.Get(domain)
+	cachedReport, exists := store.Get(context.Background(), domain)
 	if !exists {
 		t.Error("Expected entry to exist after Set")
 	}
@@ -50,7 +51,7 @@ func TestMemoryStore_BasicOperations(t *testing.T) {
 
 	// Test Delete
 	store.Delete(domain)
-	_, exists = store.Get(domain)
+	_, exists = store.Get(context.Background(), domain)
 	if exists {
 		t.Error("Expected no entry after Delete")
 	}
@@ -67,7 +68,7 @@ func TestMemoryStore_Clear(t *testing.T) {
 	domains := []string{"example.com", "google.com", "github.com"}
 	for _, domain := range domains {
 		report := &models.Report{Target: domain}
-		store.Set(domain, report)
+		store.Set(context.Background(), domain, report)
 	}
 
 	if store.Size() != len(domains) {
@@ -83,7 +84,7 @@ func TestMemoryStore_Clear(t *testing.T) {
 
 	// Verify all entries are gone
 	for _, domain := range domains {
-		_, exists := store.Get(domain)
+		_, exists := store.Get(context.Background(), domain)
 		if exists {
 			t.Errorf("Expected no entry for %s after clear", domain)
 		}
@@ -98,24 +99,24 @@ func TestMemoryStore_TTL(t *testing.T) {
 	report := &models.Report{Target: domain}
 
 	// Set entry
-	store.Set(domain, report)
+	store.Set(context.Background(), domain, report)
 
 	// Should exist immediately
-	_, exists := store.Get(domain)
+	_, exists := store.Get(context.Background(), domain)
 	if !exists {
 		t.Error("Expected entry to exist immediately after set")
 	}
 
 	// Should still exist before TTL
 	time.Sleep(ttl / 2)
-	_, exists = store.Get(domain)
+	_, exists = store.Get(context.Background(), domain)
 	if !exists {
 		t.Error("Expected entry to exist before TTL expiry")
 	}
 
 	// Should be expired after TTL
 	time.Sleep(ttl)
-	_, exists = store.Get(domain)
+	_, exists = store.Get(context.Background(), domain)
 	if exists {
 		t.Error("Expected entry to be expired after TTL")
 	}
@@ -142,7 +143,7 @@ func TestMemoryStore_ConcurrentAccess(t *testing.T) {
 			for j := 0; j < numOperations; j++ {
 				domain := formatDomain(id, j)
 				report := &models.Report{Target: domain}
-				store.Set(domain, report)
+				store.Set(context.Background(), domain, report)
 			}
 		}(i)
 	}
@@ -154,7 +155,7 @@ func TestMemoryStore_ConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 			for j := 0; j < numOperations; j++ {
 				domain := formatDomain(id, j)
-				store.Get(domain)
+				store.Get(context.Background(), domain)
 			}
 		}(i)
 	}
@@ -179,17 +180,17 @@ func TestMemoryStore_UpdateExisting(t *testing.T) {
 		Target:   domain,
 		Identity: models.Identity{IP: "192.168.1.1"},
 	}
-	store.Set(domain, report1)
+	store.Set(context.Background(), domain, report1)
 
 	// Update with new report
 	report2 := &models.Report{
 		Target:   domain,
 		Identity: models.Identity{IP: "192.168.1.2"},
 	}
-	store.Set(domain, report2)
+	store.Set(context.Background(), domain, report2)
 
 	// Should have updated IP
-	cachedReport, exists := store.Get(domain)
+	cachedReport, exists := store.Get(context.Background(), domain)
 	if !exists {
 		t.Error("Expected entry to exist after update")
 	}
@@ -210,11 +211,11 @@ func TestMemoryStore_ZeroTTL(t *testing.T) {
 	domain := "example.com"
 	report := &models.Report{Target: domain}
 
-	store.Set(domain, report)
+	store.Set(context.Background(), domain, report)
 
 	// Should exist after a long time with zero TTL
 	time.Sleep(10 * time.Millisecond)
-	_, exists := store.Get(domain)
+	_, exists := store.Get(context.Background(), domain)
 	if !exists {
 		t.Error("Expected entry to exist with zero TTL (no expiration)")
 	}

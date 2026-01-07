@@ -47,7 +47,7 @@ func CheckEmailSecurity(ctx context.Context, domain string) (models.EmailSec, er
 
 	if emailSec.SPF == "" {
 		emailSec.IsWeak = true
-		logger.Get().Debug("SPF record missing",
+		logger.GetFromContext(ctx, logger.Get()).Debug("SPF record missing",
 			slog.String("domain", domain))
 	}
 	if emailSec.DMARC == "" || emailSec.DMARC == "none" {
@@ -55,7 +55,7 @@ func CheckEmailSecurity(ctx context.Context, domain string) (models.EmailSec, er
 			emailSec.DMARC = "none"
 		}
 		emailSec.IsWeak = true
-		logger.Get().Debug("weak DMARC policy",
+		logger.GetFromContext(ctx, logger.Get()).Debug("weak DMARC policy",
 			slog.String("domain", domain),
 			slog.String("policy", emailSec.DMARC))
 	}

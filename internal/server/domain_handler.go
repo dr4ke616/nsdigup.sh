@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -32,7 +31,7 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 		slog.String("format", format.String()))
 
 	// Try cache first (read-through cache strategy)
-	if cachedReport, found := h.cache.Get(domain); found {
+	if cachedReport, found := h.cache.Get(r.Context(), domain); found {
 		log.Info("cache hit", slog.String("domain", domain))
 		h.writeResponse(w, r, cachedReport, format)
 		return
@@ -42,8 +41,7 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 	log.Info("cache miss, initiating scan", slog.String("domain", domain))
 
 	start := time.Now()
-	ctx := context.Background()
-	report, err := h.scanner.Scan(ctx, domain)
+	report, err := h.scanner.Scan(r.Context(), domain)
 	scanDuration := time.Since(start)
 
 	if err != nil {
@@ -60,7 +58,7 @@ func (h *Handler) ServeDomain(w http.ResponseWriter, r *http.Request) {
 		slog.Duration("duration", scanDuration))
 
 	// Store in cache for future requests
-	h.cache.Set(domain, report)
+	h.cache.Set(r.Context(), domain, report)
 
 	h.writeResponse(w, r, report, format)
 }

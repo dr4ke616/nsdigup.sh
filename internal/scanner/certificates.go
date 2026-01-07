@@ -29,7 +29,7 @@ func (c *CertificateScanner) ScanCertificates(ctx context.Context, domain string
 
 	// Certificate check
 	go func() {
-		certDetails, err := tools.GetCertDetails(domain, c.timeout)
+		certDetails, err := tools.GetCertDetails(ctx, domain, c.timeout)
 		if err != nil {
 			errChan <- err
 			return

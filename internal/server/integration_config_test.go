@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -175,7 +176,7 @@ func TestHandler_ConfigValidation_CacheStoreType(t *testing.T) {
 
 			// Check cache size behavior to determine store type
 			// NoOpStore always returns size 0, MemoryStore tracks actual size
-			handler.cache.Set("test", &models.Report{Target: "test"})
+			handler.cache.Set(context.Background(), "test", &models.Report{Target: "test"})
 			size := handler.cache.Size()
 
 			if tt.expectNoOp && size != 0 {
@@ -203,7 +204,7 @@ func TestHandler_CacheConfigZeroTTL(t *testing.T) {
 	handler := NewHandler(cfg)
 
 	// Verify it uses NoOpStore
-	handler.cache.Set("test", &models.Report{Target: "test"})
+	handler.cache.Set(context.Background(), "test", &models.Report{Target: "test"})
 	if handler.cache.Size() != 0 {
 		t.Error("Expected NoOpStore behavior when cache is disabled")
 	}

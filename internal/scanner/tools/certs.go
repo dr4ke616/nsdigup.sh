@@ -2,6 +2,7 @@ package tools
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -37,7 +38,7 @@ type CertInfo struct {
 // GetCertDetails retrieves and analyzes the TLS certificate for the given domain.
 // It connects to the domain on port 443 and extracts certificate information including
 // issuer, common name, expiration, wildcard status, and overall status.
-func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
+func GetCertDetails(ctx context.Context, domain string, timeout time.Duration) (CertInfo, error) {
 	// Detect if connecting via IP address
 	isIP := isIPAddress(domain)
 
@@ -72,7 +73,7 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 
 	// Log if certificate is expiring soon
 	if status == models.StatusExpiringSoon {
-		logger.Get().Debug("certificate expiring soon",
+		logger.GetFromContext(ctx, logger.Get()).Debug("certificate expiring soon",
 			slog.String("domain", domain),
 			slog.String("common_name", cert.Subject.CommonName),
 			slog.Int("days_remaining", expiresInDays),
@@ -113,7 +114,7 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 	// Try to verify against system roots
 	if _, err := cert.Verify(opts); err != nil {
 		isUntrustedRoot = true
-		logger.Get().Debug("certificate chain verification failed",
+		logger.GetFromContext(ctx, logger.Get()).Debug("certificate chain verification failed",
 			slog.String("domain", domain),
 			slog.String("common_name", cert.Subject.CommonName),
 			slog.String("error", err.Error()))
@@ -124,15 +125,15 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 	if len(state.PeerCertificates) > 1 {
 		// We need the issuer certificate to create OCSP request
 		issuerCert := state.PeerCertificates[1]
-		isRevoked = checkOCSPRevocation(cert, issuerCert, timeout)
+		isRevoked = checkOCSPRevocation(ctx, cert, issuerCert, timeout)
 	} else {
-		logger.Get().Debug("no issuer certificate available for OCSP check",
+		logger.GetFromContext(ctx, logger.Get()).Debug("no issuer certificate available for OCSP check",
 			slog.String("domain", domain))
 	}
 
 	// Log hostname mismatch for debugging
 	if !isValidHostname {
-		logger.Get().Debug("hostname mismatch detected",
+		logger.GetFromContext(ctx, logger.Get()).Debug("hostname mismatch detected",
 			slog.String("domain", domain),
 			slog.String("common_name", cert.Subject.CommonName),
 			slog.Any("sans", subjectAltNames),
@@ -232,17 +233,17 @@ func validateHostname(domain string, cert *x509.Certificate) bool {
 // checkOCSPRevocation checks if a certificate has been revoked using OCSP.
 // It returns true if the certificate is revoked, false otherwise.
 // Errors during OCSP checking are logged but not treated as revocation.
-func checkOCSPRevocation(cert, issuer *x509.Certificate, timeout time.Duration) bool {
+func checkOCSPRevocation(ctx context.Context, cert, issuer *x509.Certificate, timeout time.Duration) bool {
 	// Check if certificate has OCSP server URLs
 	if len(cert.OCSPServer) == 0 {
-		logger.Get().Debug("no OCSP servers found in certificate")
+		logger.GetFromContext(ctx, logger.Get()).Debug("no OCSP servers found in certificate")
 		return false
 	}
 
 	// Create OCSP request
 	ocspRequest, err := ocsp.CreateRequest(cert, issuer, nil)
 	if err != nil {
-		logger.Get().Debug("failed to create OCSP request",
+		logger.GetFromContext(ctx, logger.Get()).Debug("failed to create OCSP request",
 			slog.String("error", err.Error()))
 		return false
 	}
@@ -255,7 +256,7 @@ func checkOCSPRevocation(cert, issuer *x509.Certificate, timeout time.Duration) 
 
 		httpRequest, err := http.NewRequest("POST", server, bytes.NewReader(ocspRequest))
 		if err != nil {
-			logger.Get().Debug("failed to create OCSP HTTP request",
+			logger.GetFromContext(ctx, logger.Get()).Debug("failed to create OCSP HTTP request",
 				slog.String("server", server),
 				slog.String("error", err.Error()))
 			continue
@@ -266,7 +267,7 @@ func checkOCSPRevocation(cert, issuer *x509.Certificate, timeout time.Duration) 
 
 		httpResponse, err := httpClient.Do(httpRequest)
 		if err != nil {
-			logger.Get().Debug("OCSP request failed",
+			logger.GetFromContext(ctx, logger.Get()).Debug("OCSP request failed",
 				slog.String("server", server),
 				slog.String("error", err.Error()))
 			continue
@@ -275,7 +276,7 @@ func checkOCSPRevocation(cert, issuer *x509.Certificate, timeout time.Duration) 
 
 		body, err := io.ReadAll(httpResponse.Body)
 		if err != nil {
-			logger.Get().Debug("failed to read OCSP response",
+			logger.GetFromContext(ctx, logger.Get()).Debug("failed to read OCSP response",
 				slog.String("server", server),
 				slog.String("error", err.Error()))
 			continue
@@ -283,7 +284,7 @@ func checkOCSPRevocation(cert, issuer *x509.Certificate, timeout time.Duration) 
 
 		ocspResponse, err := ocsp.ParseResponse(body, issuer)
 		if err != nil {
-			logger.Get().Debug("failed to parse OCSP response",
+			logger.GetFromContext(ctx, logger.Get()).Debug("failed to parse OCSP response",
 				slog.String("server", server),
 				slog.String("error", err.Error()))
 			continue
@@ -292,16 +293,16 @@ func checkOCSPRevocation(cert, issuer *x509.Certificate, timeout time.Duration) 
 		// Check the response status
 		switch ocspResponse.Status {
 		case ocsp.Good:
-			logger.Get().Debug("OCSP: certificate is good",
+			logger.GetFromContext(ctx, logger.Get()).Debug("OCSP: certificate is good",
 				slog.String("server", server))
 			return false
 		case ocsp.Revoked:
-			logger.Get().Debug("OCSP: certificate is revoked",
+			logger.GetFromContext(ctx, logger.Get()).Debug("OCSP: certificate is revoked",
 				slog.String("server", server),
 				slog.Time("revoked_at", ocspResponse.RevokedAt))
 			return true
 		case ocsp.Unknown:
-			logger.Get().Debug("OCSP: certificate status unknown",
+			logger.GetFromContext(ctx, logger.Get()).Debug("OCSP: certificate status unknown",
 				slog.String("server", server))
 			continue
 		}

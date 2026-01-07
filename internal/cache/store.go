@@ -1,12 +1,14 @@
 package cache
 
 import (
+	"context"
+
 	"nsdigup/pkg/models"
 )
 
 type Store interface {
-	Get(domain string) (*models.Report, bool)
-	Set(domain string, report *models.Report)
+	Get(ctx context.Context, domain string) (*models.Report, bool)
+	Set(ctx context.Context, domain string, report *models.Report)
 	Delete(domain string)
 	Clear()
 	Size() int
