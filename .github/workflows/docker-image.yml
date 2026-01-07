@@ -27,7 +27,13 @@ jobs:
           go-version: '1.25'
 
       - name: Run tests
-        run: make test-clear-cache clean check
+        run: make test
+
+      - name: Run fmt
+        run: make fmt
+
+      - name: Run vet
+        run: make vet
 
   Build:
     if: github.ref_type == 'tag'

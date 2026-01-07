@@ -38,9 +38,9 @@ type Certificates struct {
 	IsSelfSigned  bool      `json:"is_self_signed"`
 
 	// Hostname validation
-	SubjectAltNames []string `json:"subject_alt_names,omitempty"`
-	HostnameMatch   bool     `json:"hostname_match"`
-	IsIPAddress     bool     `json:"is_ip_address"`
+	SubjectAltNames  []string `json:"subject_alt_names,omitempty"`
+	IsValidHostname  bool     `json:"is_valid_hostname"`
+	IsIPAddress      bool     `json:"is_ip_address"`
 
 	// TLS protocol and cipher analysis
 	TLSVersions      []string `json:"tls_versions,omitempty"`

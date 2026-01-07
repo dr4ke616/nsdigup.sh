@@ -22,7 +22,7 @@ type CertInfo struct {
 	IsWildcard      bool
 	IsSelfSigned    bool
 	SubjectAltNames []string
-	HostnameMatch   bool
+	IsValidHostname bool
 	IsIPAddress     bool
 }
 
@@ -162,14 +162,14 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 	isSelfSigned := cert.Issuer.String() == cert.Subject.String()
 
 	// Perform hostname validation
-	hostnameMatch := validateHostname(domain, cert)
+	isValidHostname := validateHostname(domain, cert)
 
 	// Extract Subject Alternative Names
 	subjectAltNames := make([]string, len(cert.DNSNames))
 	copy(subjectAltNames, cert.DNSNames)
 
 	// Log hostname mismatch for debugging
-	if !hostnameMatch {
+	if !isValidHostname {
 		logger.Get().Debug("hostname mismatch detected",
 			slog.String("domain", domain),
 			slog.String("common_name", cert.Subject.CommonName),
@@ -186,7 +186,7 @@ func GetCertDetails(domain string, timeout time.Duration) (CertInfo, error) {
 		IsWildcard:      isWildcard,
 		IsSelfSigned:    isSelfSigned,
 		SubjectAltNames: subjectAltNames,
-		HostnameMatch:   hostnameMatch,
+		IsValidHostname: isValidHostname,
 		IsIPAddress:     isIP,
 	}, nil
 }

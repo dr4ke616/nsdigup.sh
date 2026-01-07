@@ -137,7 +137,7 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 		if certs.IsIPAddress {
 			fmt.Fprintf(w, "    ⚠ Connected via IP Address\n")
 			fmt.Fprintf(w, "      Consider using a domain name for proper certificate validation\n")
-		} else if !certs.HostnameMatch {
+		} else if !certs.IsValidHostname {
 			fmt.Fprintf(w, "    ⚠ Hostname Mismatch\n")
 			if len(certs.SubjectAltNames) > 0 {
 				fmt.Fprintf(w, "      Certificate is valid for:\n")
