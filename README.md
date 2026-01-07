@@ -11,7 +11,7 @@ A domain health monitoring HTTP service that provides instant security and confi
 `nsdigup.sh` performs parallel security scans across multiple dimensions:
 
 - **DNS & Identity**: IP resolution, nameserver enumeration, WHOIS data, DNSSEC validation, CAA records
-- **SSL/TLS Security**: Certificate details, expiry tracking, wildcard detection, TLS version analysis, weak cipher identification
+- **SSL/TLS Security**: Certificate details, expiry tracking, self-signed detection, hostname validation, trust chain verification, OCSP revocation checking, wildcard detection, TLS version analysis, weak cipher identification
 - **Email Security**: SPF and DMARC policy validation with weakness detection
 - **HTTP Security**: Security header analysis (HSTS, CSP, X-Frame-Options, etc.), HTTPS redirect checking
 - **Performance**: Concurrent scanning with <2s response time, optional in-memory caching
@@ -124,6 +124,11 @@ Command line flags override environment variables.
 - **Expiration Tracking**: Consistent date format with days-until-expiry
 - **Wildcard Detection**: Identifies wildcard certificates
 - **Status Tracking**: Active, expired, or expiring soon
+- **Self-Signed Detection**: Identifies self-signed certificates
+- **Hostname Validation**: Verifies domain matches certificate CN/SANs with RFC 6125 wildcard support
+- **IP Address Warning**: Flags connections via IP address instead of domain name
+- **Trust Chain Validation**: Verifies certificates against system root CAs
+- **Revocation Checking**: OCSP-based certificate revocation status (note: CRL not supported)
 - **TLS Protocol Versions**: Supported TLS versions (1.0, 1.1, 1.2, 1.3)
 - **Weak Protocol Detection**: Flags deprecated TLS 1.0/1.1
 - **Cipher Suites**: Lists all supported ciphers
@@ -185,6 +190,16 @@ Scanned: 2025-12-27T10:30:00Z
     Status: Active
     Cert Expires: 2026-02-25 (428 days)
 
+  Certificate Security:
+    ⚠ Self-Signed Certificate (if applicable)
+    ⚠ Untrusted Root Certificate (if applicable)
+    ⚠ Certificate Revoked (if applicable)
+    ⚠ Hostname Mismatch (if applicable)
+      Certificate is valid for:
+        • example.com
+        • www.example.com
+    ⚠ Connected via IP Address (if applicable)
+
   TLS Configuration:
     Supported TLS Versions: TLS 1.2, TLS 1.3
     Cipher Suites: 15 detected
@@ -229,6 +244,12 @@ Structured data for automation and integration:
     "expires_in_days": 428,
     "status": "Active",
     "is_wildcard": true,
+    "is_self_signed": false,
+    "subject_alt_names": ["*.google.com", "google.com"],
+    "is_valid_hostname": true,
+    "is_ip_address": false,
+    "is_untrusted_root": false,
+    "is_revoked": false,
     "tls_versions": ["TLS 1.2", "TLS 1.3"],
     "weak_tls_versions": [],
     "cipher_suites": ["TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384"],
@@ -448,6 +469,10 @@ This will show:
 **Cache not working**: Verify `--cache-mode mem` is set and TTL is greater than 0.
 
 **DNS resolution fails**: Ensure the server can reach public DNS servers. Test with `dig` or `nslookup`.
+
+### Known Limitations
+
+**Certificate Revocation**: Only OCSP (Online Certificate Status Protocol) is supported for revocation checking. CRL (Certificate Revocation Lists) are not currently supported. Certificates that only provide CRL endpoints (without OCSP) will not have their revocation status checked. Most modern certificates from Let's Encrypt, DigiCert, and other major CAs include OCSP responders.
 
 ## License
 
