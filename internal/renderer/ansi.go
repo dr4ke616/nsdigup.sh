@@ -133,6 +133,22 @@ func (a *ANSIRenderer) renderCertificates(w io.Writer, certs *models.Certificate
 			fmt.Fprintf(w, "    ⚠ Self-Signed Certificate\n")
 		}
 
+		// Hostname validation warnings
+		if certs.IsIPAddress {
+			fmt.Fprintf(w, "    ⚠ Connected via IP Address\n")
+			fmt.Fprintf(w, "      Consider using a domain name for proper certificate validation\n")
+		} else if !certs.HostnameMatch {
+			fmt.Fprintf(w, "    ⚠ Hostname Mismatch\n")
+			if len(certs.SubjectAltNames) > 0 {
+				fmt.Fprintf(w, "      Certificate is valid for:\n")
+				for _, san := range certs.SubjectAltNames {
+					fmt.Fprintf(w, "        • %s\n", san)
+				}
+			} else if certs.CommonName != "" {
+				fmt.Fprintf(w, "      Certificate is valid for: %s\n", certs.CommonName)
+			}
+		}
+
 		if !certs.ExpiresAt.IsZero() {
 			expiry := certs.ExpiresAt.Format("2006-01-02")
 			fmt.Fprintf(w, "    Cert Expires: %s (%d days)\n", expiry, certs.ExpiresInDays)

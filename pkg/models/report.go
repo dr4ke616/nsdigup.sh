@@ -37,6 +37,11 @@ type Certificates struct {
 	IsWildcard    bool      `json:"is_wildcard"`
 	IsSelfSigned  bool      `json:"is_self_signed"`
 
+	// Hostname validation
+	SubjectAltNames []string `json:"subject_alt_names,omitempty"`
+	HostnameMatch   bool     `json:"hostname_match"`
+	IsIPAddress     bool     `json:"is_ip_address"`
+
 	// TLS protocol and cipher analysis
 	TLSVersions      []string `json:"tls_versions,omitempty"`
 	WeakTLSVersions  []string `json:"weak_tls_versions,omitempty"`
